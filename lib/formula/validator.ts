@@ -1,6 +1,7 @@
 import { ChallengeDataset, FormulaValue, ValidationFeedback } from "./types";
 import { FormulaEvaluator } from "./evaluator";
 import { CanonicalFunctionId } from "../i18n/types";
+import { FORMULA_DEFINITIONS } from "../i18n/formulaLocale";
 
 export const KNOWN_EXCEL_FUNCTIONS = new Set<string>([
   "SUM",
@@ -182,12 +183,16 @@ export class FormulaValidator {
     let diagnosticMsgTr = `Formülünüz '${String(userResult)}' sonucunu verdi, ancak '${String(options.expectedResult)}' bekleniyordu.`;
 
     if (isConceptAFunction && !usedFunctions.includes(options.expectedConcept as CanonicalFunctionId)) {
-      diagnosticMsgEn += ` Consider using the ${options.expectedConcept} function.`;
-      diagnosticMsgTr += ` ${options.expectedConcept} fonksiyonunu kullanmayı düşünebilirsiniz.`;
+      const def = FORMULA_DEFINITIONS[options.expectedConcept as CanonicalFunctionId];
+      const nameEn = def?.en || options.expectedConcept;
+      const nameTr = def?.tr || options.expectedConcept;
+      diagnosticMsgEn += ` Consider using the ${nameEn} function.`;
+      diagnosticMsgTr += ` ${nameTr} fonksiyonunu kullanmayı düşünebilirsiniz.`;
     } else if (
       options.expectedConcept === "CELL_REFERENCE" ||
       options.expectedConcept === "REFERENCES" ||
-      options.expectedConcept === "ARITHMETIC"
+      options.expectedConcept === "ARITHMETIC" ||
+      options.expectedConcept === "TABLE_REFERENCES"
     ) {
       diagnosticMsgEn += " Check your cell coordinates, mathematical operators (+, -, *, /), and dollar ($) signs.";
       diagnosticMsgTr += " Lütfen hücre koordinatlarınızı, işlem işaretlerinizi (+, -, *, /) ve $ sabitlemelerinizi kontrol edin.";
