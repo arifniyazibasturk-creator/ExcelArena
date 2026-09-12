@@ -91,8 +91,22 @@ export class FormulaEvaluator {
     const rowNum = node.row;
     const hasHeader = this.dataset.hasHeaderRow !== false;
 
-    // Row 1 is header
+    // Row 1 is header OR a single-cell parameter column on the side
     if (hasHeader && rowNum === 1) {
+      const isSideParamColumn =
+        this.dataset.rows.length > 0 &&
+        this.dataset.rows[0][colDef.key] !== undefined &&
+        this.dataset.rows[0][colDef.key] !== "" &&
+        (!colDef.name ||
+          this.dataset.rows.length === 1 ||
+          this.dataset.rows[1][colDef.key] === "" ||
+          this.dataset.rows[1][colDef.key] === 0 ||
+          this.dataset.rows[1][colDef.key] === undefined);
+
+      if (isSideParamColumn) {
+        return this.dataset.rows[0][colDef.key];
+      }
+
       return colDef.name;
     }
 
@@ -206,7 +220,23 @@ export class FormulaEvaluator {
     const left = this.evaluateNode(node.left);
     const right = this.evaluateNode(node.right);
 
-    switch (node.operator) {
+    // Array broadcasting (Element-wise operations for Dynamic Arrays)
+    if (Array.isArray(left) || Array.isArray(right)) {
+      const arrLen = Array.isArray(left) ? left.length : (right as any[]).length;
+      const res: any[] = [];
+      for (let i = 0; i < arrLen; i++) {
+        const lVal = Array.isArray(left) ? left[i] : left;
+        const rVal = Array.isArray(right) ? right[i] : right;
+        res.push(this.evaluateScalarBinary(node.operator, lVal, rVal));
+      }
+      return res;
+    }
+
+    return this.evaluateScalarBinary(node.operator, left, right);
+  }
+
+  private evaluateScalarBinary(operator: string, left: any, right: any): FormulaValue {
+    switch (operator) {
       case "+": {
         const n1 = this.asNumber(left);
         const n2 = this.asNumber(right);
@@ -260,7 +290,7 @@ export class FormulaEvaluator {
         return this.compare(left, right) >= 0;
       }
       default:
-        throw new Error(`Unsupported operator: ${node.operator}`);
+        throw new Error(`Unsupported operator: ${operator}`);
     }
   }
 
@@ -287,6 +317,7 @@ export class FormulaEvaluator {
 
   private asNumber(val: any): number | null {
     if (typeof val === "number") return isNaN(val) ? null : val;
+    if (typeof val === "boolean") return val ? 1 : 0;
     if (val === null || val === undefined || val === "") return 0;
     const parsed = parseFloat(String(val).replace(/,/g, ""));
     return isNaN(parsed) ? null : parsed;

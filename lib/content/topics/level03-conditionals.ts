@@ -2115,7 +2115,7 @@ export const LEVEL_03_TOPICS: TopicContent[] = [
             { batch: "B-7", mac: "CNC-1", shift: "Night", units: 320 },
           ],
         },
-        expectedResult: 14500,
+        expectedResult: 1450,
         expectedConcept: "SUMIFS",
         hintsEn: ['Write =SUMIFS(D2:D8, B2:B8, "CNC-1", C2:C8, "Day")'],
         hintsTr: ['=ÇOKETOPLA(D2:D8; B2:B8; "CNC-1"; C2:C8; "Day") yazın'],

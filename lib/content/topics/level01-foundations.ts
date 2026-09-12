@@ -1075,7 +1075,7 @@ export const LEVEL_01_TOPICS: TopicContent[] = [
             { key: "att", name: "Attendees", colLetter: "C", type: "number" },
           ],
           rows: [
-            { event: "Summit", cost: 12000, attendees: 60 },
+            { event: "Summit", cost: 12000, att: 60 },
           ],
         },
         expectedResult: 200,

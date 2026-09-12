@@ -345,15 +345,30 @@ export const BUILT_IN_FUNCTIONS: Record<string, FunctionImplementation> = {
   },
 
   // Lookup & Reference Functions
+  // Lookup & Reference Functions
   XLOOKUP: (
     lookupValue: any,
     lookupArray: any[],
     returnArray: any[],
-    ifNotFound: any = "#N/A"
+    ifNotFound: any = "#N/A",
+    matchMode: any = 0,
+    searchMode: any = 1
   ) => {
     if (!Array.isArray(lookupArray) || !Array.isArray(returnArray)) return "#VALUE!";
-    for (let i = 0; i < lookupArray.length; i++) {
+    const reverse = searchMode === -1 || searchMode === "-1";
+    const startIdx = reverse ? lookupArray.length - 1 : 0;
+    const endIdx = reverse ? -1 : lookupArray.length;
+    const step = reverse ? -1 : 1;
+
+    for (let i = startIdx; i !== endIdx; i += step) {
       if (CriteriaMatcher.test(lookupArray[i], lookupValue)) {
+        if (Array.isArray(returnArray[0])) {
+          // If returnArray is 2D and lookup array matched horizontal headers:
+          if (lookupArray.length === (returnArray[0] as any[]).length) {
+            return returnArray.map((r) => (Array.isArray(r) ? r[i] : r));
+          }
+          return returnArray[i] ?? null;
+        }
         return returnArray[i] ?? null;
       }
     }
@@ -364,19 +379,54 @@ export const BUILT_IN_FUNCTIONS: Record<string, FunctionImplementation> = {
     lookupValue: any,
     tableArray: any[][],
     colIndex: any,
-    exactMatch: any = true
+    rangeLookup: any = false
   ) => {
     if (!Array.isArray(tableArray) || tableArray.length === 0) return "#VALUE!";
     const colIdx = (typeof colIndex === "number" ? colIndex : parseInt(String(colIndex), 10)) - 1;
     if (isNaN(colIdx) || colIdx < 0) return "#VALUE!";
 
+    const isApproximate =
+      rangeLookup === true ||
+      rangeLookup === 1 ||
+      String(rangeLookup).toLowerCase() === "true" ||
+      String(rangeLookup).toLowerCase() === "doğru" ||
+      String(rangeLookup).toLowerCase() === "dogru";
+
+    if (!isApproximate) {
+      for (let i = 0; i < tableArray.length; i++) {
+        const row = tableArray[i];
+        if (Array.isArray(row) && row.length > 0) {
+          if (CriteriaMatcher.test(row[0], lookupValue)) {
+            return row[colIdx] ?? "#REF!";
+          }
+        }
+      }
+      return "#N/A";
+    }
+
+    // Approximate Match (Find largest item <= lookupValue in sorted 1st column)
+    let bestRowIdx = -1;
+    const lookupNum = typeof lookupValue === "number" ? lookupValue : parseFloat(String(lookupValue));
+
     for (let i = 0; i < tableArray.length; i++) {
       const row = tableArray[i];
       if (Array.isArray(row) && row.length > 0) {
-        if (CriteriaMatcher.test(row[0], lookupValue)) {
-          return row[colIdx] ?? "#REF!";
+        const cellVal = row[0];
+        const cellNum = typeof cellVal === "number" ? cellVal : parseFloat(String(cellVal));
+        if (!isNaN(lookupNum) && !isNaN(cellNum)) {
+          if (cellNum <= lookupNum) {
+            bestRowIdx = i;
+          } else {
+            break;
+          }
+        } else if (String(cellVal).localeCompare(String(lookupValue)) <= 0) {
+          bestRowIdx = i;
         }
       }
+    }
+
+    if (bestRowIdx !== -1) {
+      return tableArray[bestRowIdx][colIdx] ?? "#REF!";
     }
     return "#N/A";
   },
@@ -385,7 +435,7 @@ export const BUILT_IN_FUNCTIONS: Record<string, FunctionImplementation> = {
     lookupValue: any,
     tableArray: any[][],
     rowIndex: any,
-    exactMatch: any = true
+    rangeLookup: any = false
   ) => {
     if (!Array.isArray(tableArray) || tableArray.length === 0) return "#VALUE!";
     const rowIdx = (typeof rowIndex === "number" ? rowIndex : parseInt(String(rowIndex), 10)) - 1;
@@ -394,10 +444,39 @@ export const BUILT_IN_FUNCTIONS: Record<string, FunctionImplementation> = {
     const headerRow = tableArray[0];
     if (!Array.isArray(headerRow)) return "#VALUE!";
 
-    for (let col = 0; col < headerRow.length; col++) {
-      if (CriteriaMatcher.test(headerRow[col], lookupValue)) {
-        return tableArray[rowIdx][col] ?? "#REF!";
+    const isApproximate =
+      rangeLookup === true ||
+      rangeLookup === 1 ||
+      String(rangeLookup).toLowerCase() === "true" ||
+      String(rangeLookup).toLowerCase() === "doğru";
+
+    if (!isApproximate) {
+      for (let col = 0; col < headerRow.length; col++) {
+        if (CriteriaMatcher.test(headerRow[col], lookupValue)) {
+          return tableArray[rowIdx][col] ?? "#REF!";
+        }
       }
+      return "#N/A";
+    }
+
+    let bestColIdx = -1;
+    const lookupNum = typeof lookupValue === "number" ? lookupValue : parseFloat(String(lookupValue));
+    for (let col = 0; col < headerRow.length; col++) {
+      const cellVal = headerRow[col];
+      const cellNum = typeof cellVal === "number" ? cellVal : parseFloat(String(cellVal));
+      if (!isNaN(lookupNum) && !isNaN(cellNum)) {
+        if (cellNum <= lookupNum) {
+          bestColIdx = col;
+        } else {
+          break;
+        }
+      } else if (String(cellVal).localeCompare(String(lookupValue)) <= 0) {
+        bestColIdx = col;
+      }
+    }
+
+    if (bestColIdx !== -1) {
+      return tableArray[rowIdx][bestColIdx] ?? "#REF!";
     }
     return "#N/A";
   },
@@ -423,21 +502,108 @@ export const BUILT_IN_FUNCTIONS: Record<string, FunctionImplementation> = {
 
   MATCH: (lookupValue: any, lookupArray: any[], matchType: any = 0) => {
     if (!Array.isArray(lookupArray)) return "#VALUE!";
-    for (let i = 0; i < lookupArray.length; i++) {
-      if (CriteriaMatcher.test(lookupArray[i], lookupValue)) {
-        return i + 1; // 1-based index
+    const mType = typeof matchType === "number" ? matchType : parseInt(String(matchType), 10) || 0;
+
+    // Exact Match (matchType === 0)
+    if (mType === 0) {
+      for (let i = 0; i < lookupArray.length; i++) {
+        if (CriteriaMatcher.test(lookupArray[i], lookupValue)) {
+          return i + 1; // 1-based index
+        }
       }
+      return "#N/A";
     }
+
+    // Less than or equal to (matchType === 1)
+    if (mType === 1) {
+      let bestIdx = -1;
+      const target = typeof lookupValue === "number" ? lookupValue : parseFloat(String(lookupValue));
+      for (let i = 0; i < lookupArray.length; i++) {
+        const item = typeof lookupArray[i] === "number" ? lookupArray[i] : parseFloat(String(lookupArray[i]));
+        if (!isNaN(item) && !isNaN(target)) {
+          if (item <= target) {
+            bestIdx = i + 1;
+          } else {
+            break;
+          }
+        }
+      }
+      return bestIdx !== -1 ? bestIdx : "#N/A";
+    }
+
+    // Greater than or equal to (matchType === -1)
+    if (mType === -1) {
+      let bestIdx = -1;
+      const target = typeof lookupValue === "number" ? lookupValue : parseFloat(String(lookupValue));
+      for (let i = 0; i < lookupArray.length; i++) {
+        const item = typeof lookupArray[i] === "number" ? lookupArray[i] : parseFloat(String(lookupArray[i]));
+        if (!isNaN(item) && !isNaN(target)) {
+          if (item >= target) {
+            bestIdx = i + 1;
+          } else {
+            break;
+          }
+        }
+      }
+      return bestIdx !== -1 ? bestIdx : "#N/A";
+    }
+
     return "#N/A";
   },
 
-  XMATCH: (lookupValue: any, lookupArray: any[], matchMode: any = 0) => {
+  XMATCH: (lookupValue: any, lookupArray: any[], matchMode: any = 0, searchMode: any = 1) => {
     if (!Array.isArray(lookupArray)) return "#VALUE!";
-    for (let i = 0; i < lookupArray.length; i++) {
-      if (CriteriaMatcher.test(lookupArray[i], lookupValue)) {
-        return i + 1;
+    const reverse = searchMode === -1 || searchMode === "-1";
+    const startIdx = reverse ? lookupArray.length - 1 : 0;
+    const endIdx = reverse ? -1 : lookupArray.length;
+    const step = reverse ? -1 : 1;
+
+    // Exact Match (matchMode === 0 or default) or Wildcard Match (matchMode === 2)
+    if (matchMode === 0 || matchMode === "0" || matchMode === 2 || matchMode === "2") {
+      for (let i = startIdx; i !== endIdx; i += step) {
+        if (CriteriaMatcher.test(lookupArray[i], lookupValue)) {
+          return i + 1;
+        }
       }
+      return "#N/A";
     }
+
+    // Exact match or next smaller item (matchMode === -1)
+    if (matchMode === -1 || matchMode === "-1") {
+      let bestIdx = -1;
+      let bestDiff = Infinity;
+      const target = typeof lookupValue === "number" ? lookupValue : parseFloat(String(lookupValue));
+      for (let i = 0; i < lookupArray.length; i++) {
+        const item = typeof lookupArray[i] === "number" ? lookupArray[i] : parseFloat(String(lookupArray[i]));
+        if (!isNaN(item) && !isNaN(target) && item <= target) {
+          const diff = target - item;
+          if (diff < bestDiff) {
+            bestDiff = diff;
+            bestIdx = i + 1;
+          }
+        }
+      }
+      return bestIdx !== -1 ? bestIdx : "#N/A";
+    }
+
+    // Exact match or next larger item (matchMode === 1)
+    if (matchMode === 1 || matchMode === "1") {
+      let bestIdx = -1;
+      let bestDiff = Infinity;
+      const target = typeof lookupValue === "number" ? lookupValue : parseFloat(String(lookupValue));
+      for (let i = 0; i < lookupArray.length; i++) {
+        const item = typeof lookupArray[i] === "number" ? lookupArray[i] : parseFloat(String(lookupArray[i]));
+        if (!isNaN(item) && !isNaN(target) && item >= target) {
+          const diff = item - target;
+          if (diff < bestDiff) {
+            bestDiff = diff;
+            bestIdx = i + 1;
+          }
+        }
+      }
+      return bestIdx !== -1 ? bestIdx : "#N/A";
+    }
+
     return "#N/A";
   },
 
@@ -474,22 +640,80 @@ export const BUILT_IN_FUNCTIONS: Record<string, FunctionImplementation> = {
     return new Date().toISOString();
   },
 
-  FILTER: (array: any[], include: boolean[], ifEmpty: any = "#CALC!") => {
-    if (!Array.isArray(array) || !Array.isArray(include)) return "#VALUE!";
-    const result = array.filter((_, idx) => Boolean(include[idx]));
-    return result.length > 0 ? result : ifEmpty;
+  // Information & Count Functions
+  COUNTBLANK: (...args: any[]) => {
+    const all = flattenAll(args);
+    return all.filter((v) => v === "" || v === null || v === undefined).length;
   },
 
-  SORT: (array: any[]) => {
+  ISBLANK: (value: any) => {
+    return value === "" || value === null || value === undefined;
+  },
+
+  ISNUMBER: (value: any) => {
+    return typeof value === "number" && !isNaN(value);
+  },
+
+  ISTEXT: (value: any) => {
+    return typeof value === "string";
+  },
+
+  ISERROR: (value: any) => {
+    return typeof value === "string" && value.startsWith("#");
+  },
+
+  // Dynamic Array & Data Functions
+  FILTER: (array: any[], include: any, ifEmpty: any = "#CALC!") => {
     if (!Array.isArray(array)) return "#VALUE!";
-    return [...array].sort((a, b) => {
-      if (typeof a === "number" && typeof b === "number") return a - b;
-      return String(a).localeCompare(String(b));
+    let mask: boolean[] = [];
+
+    if (Array.isArray(include)) {
+      mask = include.map((v) => Boolean(v));
+    } else {
+      mask = [Boolean(include)];
+    }
+
+    const filtered = array.filter((_, idx) => Boolean(mask[idx]));
+    if (filtered.length === 0) return ifEmpty;
+
+    // In single-cell expectation contexts, return the first cell/row if matched
+    return filtered;
+  },
+
+  SORT: (array: any[], sortIndex: any = 1, sortOrder: any = 1) => {
+    if (!Array.isArray(array)) return "#VALUE!";
+    const colIdx = (typeof sortIndex === "number" ? sortIndex : parseInt(String(sortIndex), 10) || 1) - 1;
+    const order = sortOrder === -1 || sortOrder === "-1" ? -1 : 1;
+
+    const copy = [...array];
+    return copy.sort((a, b) => {
+      const valA = Array.isArray(a) ? a[colIdx] ?? a[0] : a;
+      const valB = Array.isArray(b) ? b[colIdx] ?? b[0] : b;
+
+      const numA = typeof valA === "number" ? valA : parseFloat(String(valA));
+      const numB = typeof valB === "number" ? valB : parseFloat(String(valB));
+
+      if (!isNaN(numA) && !isNaN(numB)) {
+        return (numA - numB) * order;
+      }
+      return String(valA).localeCompare(String(valB)) * order;
     });
   },
 
   UNIQUE: (array: any[]) => {
     if (!Array.isArray(array)) return "#VALUE!";
+    if (array.length > 0 && Array.isArray(array[0])) {
+      const seen = new Set<string>();
+      const result: any[] = [];
+      for (const row of array) {
+        const key = JSON.stringify(row);
+        if (!seen.has(key)) {
+          seen.add(key);
+          result.push(row);
+        }
+      }
+      return result;
+    }
     return Array.from(new Set(array));
   },
 };

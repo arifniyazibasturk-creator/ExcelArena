@@ -3224,9 +3224,9 @@ export const LEVEL_05_TOPICS: TopicContent[] = [
         dataset: {
           columns: [
             { key: "zone", name: "Zone", colLetter: "A" },
-            { key: "econ", name: "Economy ($)", colLetter: "B", type: "number" },
-            { key: "std", name: "Standard ($)", colLetter: "C", type: "number" },
-            { key: "exp", name: "Express ($)", colLetter: "D", type: "number" },
+            { key: "econ", name: "Economy", colLetter: "B", type: "number" },
+            { key: "std", name: "Standard", colLetter: "C", type: "number" },
+            { key: "exp", name: "Express", colLetter: "D", type: "number" },
           ],
           rows: [
             { zone: "Zone 1", econ: 10, std: 15, exp: 25 },
@@ -3279,9 +3279,9 @@ export const LEVEL_05_TOPICS: TopicContent[] = [
         dataset: {
           columns: [
             { key: "room", name: "Room Type", colLetter: "A" },
-            { key: "low", name: "Low Season ($)", colLetter: "B", type: "number" },
-            { key: "mid", name: "Mid Season ($)", colLetter: "C", type: "number" },
-            { key: "high", name: "High Season ($)", colLetter: "D", type: "number" },
+            { key: "low", name: "Low Season", colLetter: "B", type: "number" },
+            { key: "mid", name: "Mid Season", colLetter: "C", type: "number" },
+            { key: "high", name: "High Season", colLetter: "D", type: "number" },
           ],
           rows: [
             { room: "Standard", low: 100, mid: 140, high: 200 },
@@ -3521,9 +3521,9 @@ export const LEVEL_05_TOPICS: TopicContent[] = [
       dataset: {
         columns: [
           { key: "tier", name: "Subscription Plan", colLetter: "A" },
-          { key: "us", name: "Americas ($)", colLetter: "B", type: "number" },
-          { key: "emea", name: "EMEA ($)", colLetter: "C", type: "number" },
-          { key: "apac", name: "APAC ($)", colLetter: "D", type: "number" },
+          { key: "us", name: "Americas", colLetter: "B", type: "number" },
+          { key: "emea", name: "EMEA", colLetter: "C", type: "number" },
+          { key: "apac", name: "APAC", colLetter: "D", type: "number" },
         ],
         rows: [
           { tier: "Community", us: 0, emea: 0, apac: 0 },

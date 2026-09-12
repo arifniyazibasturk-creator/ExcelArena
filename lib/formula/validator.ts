@@ -221,11 +221,26 @@ export class FormulaValidator {
     if (a === b) return true;
     if (a === null || a === undefined || b === null || b === undefined) return a === b;
 
+    // Spilled arrays comparison
+    if (Array.isArray(a)) {
+      if (Array.isArray(b)) {
+        if (a.length !== b.length) return false;
+        return a.every((item, idx) => this.areValuesEqual(item, b[idx], tolerance));
+      }
+      const firstVal = Array.isArray(a[0]) ? a[0][0] : a[0];
+      return this.areValuesEqual(firstVal, b, tolerance);
+    }
+
+    if (Array.isArray(b)) {
+      const firstVal = Array.isArray(b[0]) ? b[0][0] : b[0];
+      return this.areValuesEqual(a, firstVal, tolerance);
+    }
+
     // Both are numbers
     const numA = typeof a === "number" ? a : parseFloat(String(a).replace(/,/g, ""));
     const numB = typeof b === "number" ? b : parseFloat(String(b).replace(/,/g, ""));
 
-    if (!isNaN(numA) && !isNaN(numB)) {
+    if (!isNaN(numA) && !isNaN(numB) && !isNaN(Number(a)) && !isNaN(Number(b))) {
       return Math.abs(numA - numB) <= tolerance;
     }
 

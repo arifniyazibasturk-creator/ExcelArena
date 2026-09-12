@@ -225,10 +225,23 @@ export class FormulaParser {
 
     const args: ASTNode[] = [];
     if (!this.checkType("RPAREN")) {
-      do {
-        if (this.checkType("RPAREN")) break;
-        args.push(this.parseExpression());
-      } while (this.matchSeparator());
+      while (!this.checkType("RPAREN") && !this.isAtEnd()) {
+        if (this.checkType("COMMA") || this.checkType("SEMICOLON")) {
+          // Empty omitted argument (e.g. func(a, b, , d))
+          args.push({
+            type: "StringLiteral",
+            value: "",
+          } as any);
+          this.advance();
+        } else {
+          args.push(this.parseExpression());
+          if (this.checkType("COMMA") || this.checkType("SEMICOLON")) {
+            this.advance();
+          } else {
+            break;
+          }
+        }
+      }
     }
 
     this.consume("RPAREN", `Expected ')' after function arguments for '${rawName}'`);

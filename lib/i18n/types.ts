@@ -48,7 +48,12 @@ export type CanonicalFunctionId =
   | "NOW"
   | "FILTER"
   | "SORT"
-  | "UNIQUE";
+  | "UNIQUE"
+  | "COUNTBLANK"
+  | "ISBLANK"
+  | "ISNUMBER"
+  | "ISTEXT"
+  | "ISERROR";
 
 export interface FormulaDefinition {
   canonical: CanonicalFunctionId;

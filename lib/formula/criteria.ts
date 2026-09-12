@@ -16,12 +16,21 @@ export class CriteriaMatcher {
 
     // Direct boolean criteria
     if (typeof criteria === "boolean") {
+      if (typeof cellValue === "boolean") return cellValue === criteria;
+      if (typeof cellValue === "number") return (cellValue !== 0) === criteria;
       return Boolean(cellValue) === criteria;
     }
 
     // Direct numeric criteria
     if (typeof criteria === "number") {
-      const numCell = typeof cellValue === "number" ? cellValue : parseFloat(String(cellValue));
+      let numCell: number;
+      if (typeof cellValue === "number") {
+        numCell = cellValue;
+      } else if (typeof cellValue === "boolean") {
+        numCell = cellValue ? 1 : 0;
+      } else {
+        numCell = parseFloat(String(cellValue).replace(/,/g, ""));
+      }
       return !isNaN(numCell) && numCell === criteria;
     }
 
