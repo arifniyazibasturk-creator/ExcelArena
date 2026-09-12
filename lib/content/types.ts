@@ -23,9 +23,36 @@ export interface FormulaAnatomyPart {
   targetColumnLetter?: string; // Column letter to highlight in table (e.g. "B" or "C")
 }
 
+export interface CommonMistake {
+  wrongFormula: string;
+  explanationEn: string;
+  explanationTr: string;
+  correction: string;
+}
+
+export interface ProTip {
+  titleEn: string;
+  titleTr: string;
+  descEn: string;
+  descTr: string;
+  shortcut?: string;
+}
+
+export interface ConceptQuickCheck {
+  questionEn: string;
+  questionTr: string;
+  optionsEn: string[];
+  optionsTr: string[];
+  correctOptionIndex: number;
+  explanationEn: string;
+  explanationTr: string;
+}
+
 export interface LearnStageContent {
   problemEn: string;
   problemTr: string;
+  overviewEn?: string;
+  overviewTr?: string;
   reasoningQuestionEn: string;
   reasoningQuestionTr: string;
   reasoningStepsEn: string[];
@@ -34,6 +61,11 @@ export interface LearnStageContent {
   exampleFormulaEn: string;
   exampleFormulaTr: string;
   anatomy: FormulaAnatomyPart[];
+  rulesEn?: string[];
+  rulesTr?: string[];
+  commonMistakes?: CommonMistake[];
+  proTips?: ProTip[];
+  quickCheck?: ConceptQuickCheck;
 }
 
 export interface PracticeChallenge {

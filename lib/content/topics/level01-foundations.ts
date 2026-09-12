@@ -13,8 +13,10 @@ export const LEVEL_01_TOPICS: TopicContent[] = [
     difficulty: 1,
     order: 1,
     learn: {
-      problemEn: "We need to fetch the value of Unit Price from cell C2 into our summary cell.",
-      problemTr: "Özet hücremize C2 hücresindeki Birim Fiyat değerini çekmemiz gerekiyor.",
+      problemEn: "We need to dynamically pull the Unit Price from cell C2 into our summary cell without manually typing the number 40.",
+      problemTr: "Özet hücremize 40 sayısını elle yazmak yerine C2 hücresindeki Birim Fiyat değerini dinamik olarak bağlamamız gerekiyor.",
+      overviewEn: "In Excel, you rarely hardcode numbers directly into formulas. Instead, you reference cell coordinates (like A1 or C2). When source data in the grid changes, every formula referencing that cell updates instantly and automatically, preventing manual error.",
+      overviewTr: "Excel'de sayıları formüllere doğrudan elle yazmak yerine hücre koordinatlarını (A1 veya C2 gibi) referans gösteririz. Bu sayede tablodaki kaynak veri güncellendiğinde, o hücreye bağlı tüm formüller ve raporlar otomatik olarak anında güncellenir, manuel hata riski ortadan kalkar.",
       reasoningQuestionEn: "How do cell coordinates work in Excel spreadsheets?",
       reasoningQuestionTr: "Excel elektronik tablolarında hücre koordinatları nasıl çalışır?",
       reasoningStepsEn: [
@@ -59,6 +61,57 @@ export const LEVEL_01_TOPICS: TopicContent[] = [
           descTr: "Yatay satır numarası (2. satır)",
         },
       ],
+      rulesEn: [
+        "Formulas must always start with an equals sign (=), otherwise Excel treats it as plain text.",
+        "Column letters always precede row numbers (e.g. B2 is valid, 2B is an error).",
+        "References are case-insensitive in Excel: =b2 and =B2 work identically.",
+        "Clicking a cell with the mouse while writing a formula automatically inserts its coordinate.",
+      ],
+      rulesTr: [
+        "Formüller her zaman eşittir (=) işaretiyle başlamalıdır; aksi halde Excel girdiyi düz metin sayar.",
+        "Önce sütun harfi, ardından satır numarası yazılır (örn. B2 doğru, 2B hatalıdır).",
+        "Excel'de büyük/küçük harf duyarlılığı yoktur: =b2 ile =B2 tamamen aynı çalışır.",
+        "Formül yazarken fareyle bir hücreye tıklamak koordinat adresini formüle otomatik olarak ekler.",
+      ],
+      commonMistakes: [
+        {
+          wrongFormula: "C2",
+          explanationEn: "Writing C2 without the '=' sign makes Excel store the literal text 'C2' instead of calculating the value.",
+          explanationTr: "Başına '=' koymadan C2 yazıldığında Excel bunu formül değil düz yazı (metin) olarak saklar.",
+          correction: "=C2",
+        },
+        {
+          wrongFormula: "=2C",
+          explanationEn: "Writing the row number before the column letter causes a syntax error (#NAME?).",
+          explanationTr: "Satır numarasını sütun harfinden önce yazmak geçersiz adres hatası (#AD?) üretir.",
+          correction: "=C2",
+        },
+      ],
+      proTips: [
+        {
+          titleEn: "Instant Formula Confirmation",
+          titleTr: "Hızlı Formül Onayı",
+          descEn: "Press Enter to confirm formula, or Tab to confirm and jump to the cell on the right.",
+          descTr: "Formülü onaylamak için Enter'a, onaylayıp sağdaki hücreye geçmek için Tab tuşuna basın.",
+          shortcut: "Enter / Tab",
+        },
+        {
+          titleEn: "Formula Bar Expansion",
+          titleTr: "Formül Çubuğunu Genişletme",
+          descEn: "Use Ctrl + Shift + U to expand or collapse the formula bar for long formulas.",
+          descTr: "Uzun formülleri rahat okumak için formül çubuğunu Ctrl + Shift + U ile genişletin.",
+          shortcut: "Ctrl + Shift + U",
+        },
+      ],
+      quickCheck: {
+        questionEn: "If cell B3 contains the number 150, what does writing the formula =B3 in cell D5 produce?",
+        questionTr: "B3 hücresinde 150 sayısı yazıyorsa, D5 hücresine =B3 formülü yazıldığında ne sonuç üretir?",
+        optionsEn: ["150", "The text 'B3'", "#VALUE! Error", "0"],
+        optionsTr: ["150", "'B3' metni", "#DEĞER! Hatası", "0"],
+        correctOptionIndex: 0,
+        explanationEn: "The formula =B3 dynamically fetches whatever value is stored in column B, row 3.",
+        explanationTr: "=B3 formülü B sütunu 3. satırdaki değeri dinamik olarak çeker ve 150 sonucunu verir.",
+      },
     },
     practice: [
       {
@@ -589,6 +642,8 @@ export const LEVEL_01_TOPICS: TopicContent[] = [
     learn: {
       problemEn: "Calculate VAT tax for product in row 3 by multiplying Price (B3) by fixed Tax Rate in cell E1 ($E$1).",
       problemTr: "3. satırdaki ürün için Fiyat (B3) ile E1 hücresindeki sabit KDV oranını ($E$1) çarparak vergi tutarını hesaplayın.",
+      overviewEn: "When you drag a formula down, Excel automatically shifts cell rows (B2 becomes B3, B4). But when referencing a single parameter cell (like a tax rate, exchange rate, or discount percentage), you must freeze it using dollar signs ($). The dollar sign acts as an anchor that prevents coordinates from shifting.",
+      overviewTr: "Bir formülü aşağı doğru kopyaladığınızda Excel satır numaralarını otomatik kaydırır (B2 -> B3 -> B4). Ancak sabit bir parametre hücresini (KDV oranı, döviz kuru veya iskonto yüzdesi gibi) kullanırken o hücreyi dolar ($) işaretiyle dondurmanız gerekir. Dolar işareti hücre adresinin kaymasını engelleyen bir çapa görevi görür.",
       reasoningQuestionEn: "When should we lock a cell reference with $?",
       reasoningQuestionTr: "Hücre referansını $ ile ne zaman kilitlemeliyiz?",
       reasoningStepsEn: [
@@ -642,6 +697,57 @@ export const LEVEL_01_TOPICS: TopicContent[] = [
           targetColumnLetter: "E",
         },
       ],
+      rulesEn: [
+        "$A$1 (Absolute): Both Column A and Row 1 are locked completely.",
+        "A$1 (Mixed Row Lock): Row 1 is locked; column changes when copied horizontally.",
+        "$A1 (Mixed Column Lock): Column A is locked; row changes when copied vertically.",
+        "A1 (Relative): Free to shift in all directions.",
+      ],
+      rulesTr: [
+        "$A$1 (Tam Mutlak): Hem A sütunu hem 1. satır tamamen kilitlidir; formül nereye taşınırsa taşınsın değişmez.",
+        "A$1 (Satır Kilidi): 1. satır sabittir; formül sağa kopyalandığında sütun harfi değişebilir.",
+        "$A1 (Sütun Kilidi): A sütunu sabittir; formül aşağı kopyalandığında satır numarası değişebilir.",
+        "A1 (Göreceli): Hiçbir kilit yoktur; formül kopyalandığı yönde serbestçe kayar.",
+      ],
+      commonMistakes: [
+        {
+          wrongFormula: "=B2*E1",
+          explanationEn: "When copied down to row 3, =B2*E1 turns into =B3*E2, multiplying by an empty cell and producing 0.",
+          explanationTr: "Formül aşağı çekildiğinde =B3*E2 haline gelir; E2 hücresi boş olduğu için sonuç sıfır (0) çıkar.",
+          correction: "=B2*$E$1",
+        },
+        {
+          wrongFormula: "=$B$2*$E$1",
+          explanationEn: "Locking both cells prevents the product price from advancing down row by row.",
+          explanationTr: "Ürün fiyatını ($B$2) da kilitlemek formül aşağı çekildiğinde diğer ürün fiyatlarına geçmesini engeller.",
+          correction: "=B2*$E$1",
+        },
+      ],
+      proTips: [
+        {
+          titleEn: "The F4 Magic Key",
+          titleTr: "F4 Sihirli Kısayol Tuşu",
+          descEn: "While typing a cell address (e.g. E1), press F4 to cycle through $E$1 -> E$1 -> $E1 -> E1 instantly.",
+          descTr: "Formül yazarken hücre adresindeyken F4 tuşuna basarak $E$1 -> E$1 -> $E1 -> E1 arasında anında geçiş yapın.",
+          shortcut: "F4",
+        },
+        {
+          titleEn: "Mac Shortcut for F4",
+          titleTr: "Mac Kullanıcıları İçin F4",
+          descEn: "On MacOS keyboards, use Command + T to toggle absolute dollar reference locks.",
+          descTr: "Mac klavyelerinde $ kilidi döngüsü için Command + T kısayolunu kullanabilirsiniz.",
+          shortcut: "Cmd + T",
+        },
+      ],
+      quickCheck: {
+        questionEn: "When the formula =A1*$C$1 in row 1 is copied down to row 2, what does it become?",
+        questionTr: "=A1*$C$1 formülü 1. satırdan 2. satıra kopyalandığında neye dönüşür?",
+        optionsEn: ["=A2*$C$1", "=A2*$C$2", "=A1*$C$2", "=$A$1*$C$1"],
+        optionsTr: ["=A2*$C$1", "=A2*$C$2", "=A1*$C$2", "=$A$1*$C$1"],
+        correctOptionIndex: 0,
+        explanationEn: "A1 is relative so it advances to A2. $C$1 has dollar signs locking row 1, so it stays fixed at $C$1.",
+        explanationTr: "A1 göreceli olduğu için A2'ye kayar. $C$1 hücresinde 1. satır $ ile kilitli olduğu için sabit kalarak =A2*$C$1 olur.",
+      },
     },
     practice: [
       {
