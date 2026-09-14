@@ -3,8 +3,15 @@
 import React, { useState, useEffect } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useI18n } from "@/lib/i18n/I18nContext";
+import { useLearningArea } from "@/lib/context/LearningAreaContext";
 import { LEVELS } from "@/lib/content/levels";
-import { progressService, UserStats } from "@/lib/services/progress";
+import { FINANCIAL_LEVELS } from "@/lib/financial/levels";
+import { progressService, UserStats, DEFAULT_USER_STATS } from "@/lib/services/progress";
+import {
+  financialProgressService,
+  DEFAULT_FINANCIAL_STATS,
+} from "@/lib/services/financialProgress";
+import { FinancialStats } from "@/lib/financial/types";
 import {
   User,
   Trophy,
@@ -15,24 +22,45 @@ import {
   BarChart2,
   Shield,
   Layers,
+  Building2,
+  Sparkles,
 } from "lucide-react";
 
 export default function ProfilePage() {
   const { interfaceLocale, t } = useI18n();
-  const [stats, setStats] = useState<UserStats>(progressService.getStats());
+  const { isFinancial } = useLearningArea();
+  const isTr = interfaceLocale === "tr";
+
+  const [stats, setStats] = useState<UserStats>(DEFAULT_USER_STATS);
+  const [finStats, setFinStats] = useState<FinancialStats>(DEFAULT_FINANCIAL_STATS);
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+    setStats({ ...progressService.getStats() });
+    setFinStats({ ...financialProgressService.getStats() });
+
     const updateStats = () => setStats({ ...progressService.getStats() });
+    const updateFinStats = () => setFinStats({ ...financialProgressService.getStats() });
+
     window.addEventListener("excel_arena_progress_updated", updateStats);
-    return () => window.removeEventListener("excel_arena_progress_updated", updateStats);
+    window.addEventListener("excel_arena_financial_progress_updated", updateFinStats);
+
+    return () => {
+      window.removeEventListener("excel_arena_progress_updated", updateStats);
+      window.removeEventListener("excel_arena_financial_progress_updated", updateFinStats);
+    };
   }, []);
 
   const handleResetProgress = () => {
-    progressService.resetAll();
-    setStats(progressService.getStats());
+    if (isFinancial) {
+      financialProgressService.resetAll();
+      setFinStats(financialProgressService.getStats());
+    } else {
+      progressService.resetAll();
+      setStats(progressService.getStats());
+    }
     setResetConfirmOpen(false);
   };
 
@@ -48,15 +76,27 @@ export default function ProfilePage() {
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-xs font-mono font-bold text-accent uppercase tracking-wider">
-                  Practitioner
+                  {isFinancial
+                    ? isTr
+                      ? "Finansal Analist"
+                      : "Financial Analyst"
+                    : isTr
+                    ? "Excel Uygulayıcısı"
+                    : "Practitioner"}
                 </span>
                 <span className="text-foreground-muted">|</span>
-                <span className="text-xs font-mono text-foreground-muted">
-                  {stats.completedTopicsCount}/{stats.totalTopicsCount} Topics Mastered
+                <span suppressHydrationWarning className="text-xs font-mono text-foreground-muted">
+                  {isFinancial
+                    ? `${finStats.completedLevels}/12 ${isTr ? "Modül" : "Levels"}`
+                    : `${stats.completedTopicsCount}/${stats.totalTopicsCount} ${isTr ? "Konu" : "Topics Mastered"}`}
                 </span>
               </div>
               <h1 className="text-2xl sm:text-3xl font-black text-foreground">
-                {t.profile.userTitle}
+                {isFinancial
+                  ? isTr
+                    ? "Finansal Modelleme Profili"
+                    : "Financial Modeling Profile"
+                  : t.profile.userTitle}
               </h1>
             </div>
           </div>
@@ -77,49 +117,81 @@ export default function ProfilePage() {
           {/* Overall Mastery */}
           <div className="p-5 rounded-xl bg-surface border border-border shadow-2xs flex flex-col gap-1.5">
             <div className="flex items-center justify-between text-foreground-muted">
-              <span className="text-xs font-mono uppercase tracking-wider">{t.common.totalMastery}</span>
+              <span className="text-xs font-mono uppercase tracking-wider">
+                {isFinancial ? (isTr ? "Finansal Ustalık" : "Financial Mastery") : t.common.totalMastery}
+              </span>
               <Trophy className="w-4 h-4 text-amber-500" />
             </div>
-            <div className="text-3xl font-black font-mono text-foreground">
-              {stats.overallMastery}%
+            <div
+              suppressHydrationWarning
+              className="text-3xl font-black font-mono text-foreground"
+            >
+              {isFinancial ? finStats.mastery : stats.overallMastery}%
             </div>
-            <span className="text-[11px] text-foreground-muted">Consolidated Learning</span>
+            <span className="text-[11px] text-foreground-muted">
+              {isFinancial ? (isTr ? "Müfredat Ağırlıklı" : "Curriculum Weighted") : "Consolidated Learning"}
+            </span>
           </div>
 
           {/* Accuracy Rate */}
           <div className="p-5 rounded-xl bg-surface border border-border shadow-2xs flex flex-col gap-1.5">
             <div className="flex items-center justify-between text-foreground-muted">
-              <span className="text-xs font-mono uppercase tracking-wider">{t.common.accuracy}</span>
+              <span className="text-xs font-mono uppercase tracking-wider">
+                {isFinancial ? (isTr ? "Model Doğruluğu" : "Model Accuracy") : t.common.accuracy}
+              </span>
               <Target className="w-4 h-4 text-blue-500" />
             </div>
-            <div className="text-3xl font-black font-mono text-foreground">
-              {stats.accuracyRate}%
+            <div
+              suppressHydrationWarning
+              className="text-3xl font-black font-mono text-foreground"
+            >
+              {isFinancial ? finStats.accuracy : stats.accuracyRate}%
             </div>
-            <span className="text-[11px] text-foreground-muted">Formula First-Pass Rate</span>
+            <span className="text-[11px] text-foreground-muted">
+              {isFinancial ? (isTr ? "Formül & Test İsabeti" : "Formula & Case Accuracy") : "Formula First-Pass Rate"}
+            </span>
           </div>
 
-          {/* Solved Challenges */}
+          {/* Completed Levels / Solved Challenges */}
           <div className="p-5 rounded-xl bg-surface border border-border shadow-2xs flex flex-col gap-1.5">
-            <div className="flex items-center justify-between text-foreground-muted">
-              <span className="text-xs font-mono uppercase tracking-wider">{t.common.solved}</span>
-              <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+            <div className="flex items-center justify-between text-foreground-muted text-xs font-mono">
+              <span className="text-xs font-mono uppercase tracking-wider">
+                {isFinancial ? (isTr ? "Tamamlanan Seviyeler" : "Completed Levels") : t.common.solved}
+              </span>
+              <CheckCircle2 className={`w-4 h-4 ${isFinancial ? "text-teal-500" : "text-emerald-500"}`} />
             </div>
-            <div className="text-3xl font-black font-mono text-foreground">
-              {stats.challengesSolved}
+            <div
+              suppressHydrationWarning
+              className="text-3xl font-black font-mono text-foreground"
+            >
+              {isFinancial ? `${finStats.completedLevels} / 12` : stats.challengesSolved}
             </div>
-            <span className="text-[11px] text-foreground-muted">Practice & Solves</span>
+            <span className="text-[11px] text-foreground-muted">
+              {isFinancial ? (isTr ? "Müfredat İlerlemesi" : "Curriculum Progress") : "Practice & Solves"}
+            </span>
           </div>
 
-          {/* Day Streak */}
+          {/* Day Streak / Capstone Projects */}
           <div className="p-5 rounded-xl bg-surface border border-border shadow-2xs flex flex-col gap-1.5">
             <div className="flex items-center justify-between text-foreground-muted">
-              <span className="text-xs font-mono uppercase tracking-wider">{t.common.streak}</span>
-              <Flame className="w-4 h-4 text-accent" />
+              <span className="text-xs font-mono uppercase tracking-wider">
+                {isFinancial ? (isTr ? "Kurumsal Projeler" : "Capstone Projects") : t.common.streak}
+              </span>
+              {isFinancial ? <Building2 className="w-4 h-4 text-accent" /> : <Flame className="w-4 h-4 text-accent" />}
             </div>
-            <div className="text-3xl font-black font-mono text-accent">
-              {stats.currentStreak} Days
+            <div
+              suppressHydrationWarning
+              className="text-3xl font-black font-mono text-accent"
+            >
+              {isFinancial ? finStats.completedProjects : `${stats.currentStreak} Days`}
             </div>
-            <span className="text-[11px] text-foreground-muted">Best: {stats.bestStreak} Days</span>
+            <span suppressHydrationWarning className="text-[11px] text-foreground-muted">
+              {isFinancial
+                ? isTr
+                  ? `Aktif Seri: ${finStats.currentStreak} Gün`
+                  : `Active Streak: ${finStats.currentStreak} Days`
+                : `Best: ${stats.bestStreak} Days`}
+            </span>
           </div>
         </div>
 
@@ -127,53 +199,106 @@ export default function ProfilePage() {
         <div className="p-6 rounded-2xl bg-surface border border-border shadow-xs flex flex-col gap-5">
           <div className="flex items-center justify-between">
             <h3 className="text-base sm:text-lg font-bold text-foreground">
-              {t.profile.topicSkills}
+              {isFinancial
+                ? isTr
+                  ? "Finansal Modelleme Yetkinlik Matrisi"
+                  : "Financial Modeling Competency Matrix"
+                : t.profile.topicSkills}
             </h3>
             <span className="text-xs font-mono text-foreground-muted">
-              Mastery Calculation Matrix
+              {isFinancial ? "Institutional Scorecard" : "Mastery Calculation Matrix"}
             </span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {LEVELS.slice(0, 3).flatMap((lvl) =>
-              lvl.topics.map((top) => {
-                const prog = progressService.getTopicProgress(top.id, lvl.id);
-                const title = interfaceLocale === "tr" ? top.titleTr : top.titleEn;
+            {isFinancial
+              ? FINANCIAL_LEVELS[0].topics.map((top, idx) => {
+                  const finProg = mounted
+                    ? financialProgressService.getLevelProgress("fin-level-01")
+                    : null;
+                  const pct = finProg ? finProg.masteryPercentage : 0;
+                  const title = isTr ? top.titleTr : top.titleEn;
 
-                return (
-                  <div
-                    key={top.id}
-                    className="p-3.5 rounded-xl bg-surface-secondary/40 border border-border flex items-center justify-between gap-3"
-                  >
-                    <div className="flex flex-col min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-[10px] font-bold text-accent">
-                          L{lvl.code}
-                        </span>
-                        <span className="font-mono text-[10px] text-foreground-muted">
-                          {top.canonicalFunction}
+                  return (
+                    <div
+                      key={top.id}
+                      className="p-3.5 rounded-xl bg-surface-secondary/40 border border-border flex items-center justify-between gap-3"
+                    >
+                      <div className="flex flex-col min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-[10px] font-bold text-accent">
+                            FIN-01
+                          </span>
+                          <span className="font-mono text-[10px] text-foreground-muted">
+                            MOD 0{idx + 1}
+                          </span>
+                        </div>
+                        <span className="text-xs font-bold text-foreground truncate mt-0.5">
+                          {title}
                         </span>
                       </div>
-                      <span className="text-xs font-bold text-foreground truncate mt-0.5">
-                        {title}
-                      </span>
-                    </div>
 
-                    <div className="flex items-center gap-3 shrink-0 font-mono text-xs">
-                      <div className="w-20 h-2 bg-surface-tertiary rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-accent rounded-full"
-                          style={{ width: `${prog.masteryPercentage}%` }}
-                        />
+                      <div className="flex items-center gap-3 shrink-0 font-mono text-xs">
+                        <div className="w-20 h-2 bg-surface-tertiary rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-accent rounded-full"
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                        <span
+                          suppressHydrationWarning
+                          className="font-bold w-9 text-right text-foreground"
+                        >
+                          {pct}%
+                        </span>
                       </div>
-                      <span className="font-bold w-9 text-right text-foreground">
-                        {prog.masteryPercentage}%
-                      </span>
                     </div>
-                  </div>
-                );
-              })
-            )}
+                  );
+                })
+              : LEVELS.slice(0, 3).flatMap((lvl) =>
+                  lvl.topics.map((top) => {
+                    const prog = mounted
+                      ? progressService.getTopicProgress(top.id, lvl.id)
+                      : { masteryPercentage: 0 };
+                    const title = interfaceLocale === "tr" ? top.titleTr : top.titleEn;
+
+                    return (
+                      <div
+                        key={top.id}
+                        className="p-3.5 rounded-xl bg-surface-secondary/40 border border-border flex items-center justify-between gap-3"
+                      >
+                        <div className="flex flex-col min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-[10px] font-bold text-accent">
+                              L{lvl.code}
+                            </span>
+                            <span className="font-mono text-[10px] text-foreground-muted">
+                              {top.canonicalFunction}
+                            </span>
+                          </div>
+                          <span className="text-xs font-bold text-foreground truncate mt-0.5">
+                            {title}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-3 shrink-0 font-mono text-xs">
+                          <div className="w-20 h-2 bg-surface-tertiary rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-accent rounded-full"
+                              style={{ width: `${prog.masteryPercentage}%` }}
+                            />
+                          </div>
+                          <span
+                            suppressHydrationWarning
+                            className="font-bold w-9 text-right text-foreground"
+                          >
+                            {prog.masteryPercentage}%
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
           </div>
         </div>
 

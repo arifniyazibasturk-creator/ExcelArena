@@ -38,17 +38,29 @@ export const LeftNav: React.FC<LeftNavProps> = ({
   const router = useRouter();
   const [levelDropdownOpen, setLevelDropdownOpen] = useState(false);
   const [progressVersion, setProgressVersion] = useState(0);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const handleUpdate = () => setProgressVersion((v) => v + 1);
     window.addEventListener("excel_arena_progress_updated", handleUpdate);
     return () => window.removeEventListener("excel_arena_progress_updated", handleUpdate);
   }, []);
 
   const currentLevel = getLevelById(currentLevelId) || LEVELS[0];
-  const levelMastery = progressService.getLevelMastery(currentLevel.id);
+  const levelMastery = mounted
+    ? progressService.getLevelMastery(currentLevel.id)
+    : { percentage: 0, completedTopics: 0, totalTopics: currentLevel.topics.length };
 
   const getTopicStatus = (topicId: string) => {
+    if (!mounted) {
+      const topicIdx = currentLevel.topics.findIndex((t) => t.id === topicId);
+      const isUnlocked = currentLevel.id === "level-01" && topicIdx === 0;
+      const isActive = currentTopicId === topicId;
+      const prog = { masteryPercentage: 0, practiceCompleted: false, solveCompleted: false };
+      return { prog: prog as any, isUnlocked, isActive, isCompleted: false };
+    }
+
     const prog = progressService.getTopicProgress(topicId, currentLevel.id);
     const isUnlocked = progressService.isTopicUnlocked(currentLevel.id, topicId);
     const isActive = currentTopicId === topicId;
@@ -100,10 +112,12 @@ export const LeftNav: React.FC<LeftNavProps> = ({
             {/* Level Topic Counter & Mastery Bar */}
             <div className="mt-2.5">
               <div className="flex items-center justify-between text-[11px] font-mono text-foreground-secondary mb-1">
-                <span>
+                <span suppressHydrationWarning>
                   {levelMastery.completedTopics} / {levelMastery.totalTopics} {interfaceLocale === "tr" ? "konu" : "topics"}
                 </span>
-                <span className="font-semibold text-accent">{levelMastery.percentage}%</span>
+                <span suppressHydrationWarning className="font-semibold text-accent">
+                  {levelMastery.percentage}%
+                </span>
               </div>
               <div className="w-full h-1.5 bg-surface-tertiary rounded-full overflow-hidden">
                 <div
@@ -115,50 +129,61 @@ export const LeftNav: React.FC<LeftNavProps> = ({
 
             {/* Dropdown Menu for Level Switching */}
             {levelDropdownOpen && (
-              <div className="absolute left-3 right-3 top-full mt-1 bg-surface border border-border rounded-xl shadow-xl z-50 p-2 flex flex-col gap-1 animate-fade-in">
-                {LEVELS.map((lvl) => {
-                  const lvlStat = progressService.getLevelMastery(lvl.id);
-                  const isSelected = lvl.id === currentLevel.id;
+              <>
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setLevelDropdownOpen(false)}
+                />
+                <div className="absolute left-3 right-3 top-full mt-1 bg-surface border border-border rounded-xl shadow-xl z-50 p-2 flex flex-col gap-1 animate-fade-in">
+                  {LEVELS.map((lvl) => {
+                    const lvlStat = mounted
+                      ? progressService.getLevelMastery(lvl.id)
+                      : { percentage: 0, completedTopics: 0, totalTopics: lvl.topics.length };
+                    const isSelected = lvl.id === currentLevel.id;
 
-                  return (
-                    <button
-                      key={lvl.id}
-                      disabled={lvl.isLocked}
-                      onClick={() => {
-                        setLevelDropdownOpen(false);
-                        const firstTopic = lvl.topics[0]?.id || "";
-                        if (firstTopic) {
-                          router.push(`/arena/${lvl.id}/${firstTopic}`);
-                          if (onCloseMobileDrawer) onCloseMobileDrawer();
-                        }
-                      }}
-                      className={`flex items-center justify-between p-2 rounded-lg text-left transition-colors text-xs ${
-                        isSelected
-                          ? "bg-accent/10 text-accent font-bold"
-                          : lvl.isLocked
-                          ? "opacity-40 cursor-not-allowed text-foreground-muted"
-                          : "hover:bg-surface-secondary text-foreground"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-[10px] text-accent font-bold">
-                          {lvl.code}
-                        </span>
-                        <span className="truncate max-w-[130px]">
-                          {interfaceLocale === "tr" ? lvl.titleTr : lvl.titleEn}
-                        </span>
-                      </div>
-                      {lvl.isLocked ? (
-                        <Lock className="w-3 h-3 text-foreground-muted" />
-                      ) : (
-                        <span className="font-mono text-[10px] font-semibold text-foreground-muted">
-                          {lvlStat.percentage}%
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
+                    return (
+                      <button
+                        key={lvl.id}
+                        disabled={lvl.isLocked}
+                        onClick={() => {
+                          setLevelDropdownOpen(false);
+                          const firstTopic = lvl.topics[0]?.id || "";
+                          if (firstTopic) {
+                            router.push(`/arena/${lvl.id}/${firstTopic}`);
+                            if (onCloseMobileDrawer) onCloseMobileDrawer();
+                          }
+                        }}
+                        className={`flex items-center justify-between p-2 rounded-lg text-left transition-colors text-xs ${
+                          isSelected
+                            ? "bg-accent/10 text-accent font-bold"
+                            : lvl.isLocked
+                            ? "opacity-40 cursor-not-allowed text-foreground-muted"
+                            : "hover:bg-surface-secondary text-foreground"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-[10px] text-accent font-bold">
+                            {lvl.code}
+                          </span>
+                          <span className="truncate max-w-[130px]">
+                            {interfaceLocale === "tr" ? lvl.titleTr : lvl.titleEn}
+                          </span>
+                        </div>
+                        {lvl.isLocked ? (
+                          <Lock className="w-3 h-3 text-foreground-muted" />
+                        ) : (
+                          <span
+                            suppressHydrationWarning
+                            className="font-mono text-[10px] font-semibold text-foreground-muted"
+                          >
+                            {lvlStat.percentage}%
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </>
             )}
           </div>
         ) : (

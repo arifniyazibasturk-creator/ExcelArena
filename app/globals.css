@@ -16,13 +16,24 @@
   --border: #e2e8f0;
   --border-strong: #cbd5e1;
   
-  /* Primary Accent: Competitive Crimson Red */
+  /* Primary Accent: Competitive Crimson Red (Basic Excel) */
   --accent: #dc2626;
   --accent-hover: #b91c1c;
   --accent-subtle: #fef2f2;
   --accent-foreground: #ffffff;
+
+  /* Brand Tokens (Basic Excel) */
+  --brand-primary: #dc2626;
+  --brand-primary-hover: #b91c1c;
+  --brand-secondary: #991b1b;
+  --brand-accent: #dc2626;
+  --brand-soft-background: #fef2f2;
+  --brand-active-background: #fee2e2;
+  --brand-border: #fca5a5;
+  --brand-text: #991b1b;
+  --brand-muted-text: #b91c1c;
   
-  /* Status Semantics */
+  /* Status Semantics (Functional colors: always standard across themes) */
   --success: #16a34a;
   --success-subtle: #f0fdf4;
   --error: #dc2626;
@@ -61,6 +72,16 @@
   --accent-hover: #dc2626;
   --accent-subtle: rgba(239, 68, 68, 0.15);
   --accent-foreground: #ffffff;
+
+  --brand-primary: #ef4444;
+  --brand-primary-hover: #dc2626;
+  --brand-secondary: #f87171;
+  --brand-accent: #ef4444;
+  --brand-soft-background: rgba(239, 68, 68, 0.15);
+  --brand-active-background: rgba(239, 68, 68, 0.25);
+  --brand-border: #7f1d1d;
+  --brand-text: #fecaca;
+  --brand-muted-text: #f87171;
   
   /* Status Semantics in Dark Mode */
   --success: #22c55e;
@@ -82,6 +103,90 @@
   --grid-cell-border-highlight: #ef4444;
 }
 
+/* ==========================================================================
+   Financial Excel Area Theme (Professional Navy Blue Palette)
+   ========================================================================== */
+html[data-learning-area="financial-excel"],
+[data-learning-area="financial-excel"] {
+  --finance-primary: #1E4E8C;
+  --finance-primary-hover: #163C6D;
+  --finance-secondary: #2B6CB0;
+  --finance-accent: #3182CE;
+  --finance-accent-bright: #4299E1;
+  --finance-soft-background: #F0F5FB;
+  --finance-active-background: #DBE8F6;
+  --finance-border: #C4D8ED;
+  --finance-text: #1E4E8C;
+  --finance-muted-text: #5A738E;
+
+  /* Replace Brand Accent Red with Lighter, Vibrant Corporate Navy */
+  --accent: #1E4E8C;
+  --accent-hover: #163C6D;
+  --accent-subtle: #F0F5FB;
+  --accent-foreground: #ffffff;
+
+  --brand-primary: #1E4E8C;
+  --brand-primary-hover: #163C6D;
+  --brand-secondary: #2B6CB0;
+  --brand-accent: #3182CE;
+  --brand-soft-background: #F0F5FB;
+  --brand-active-background: #DBE8F6;
+  --brand-border: #C4D8ED;
+  --brand-text: #1E4E8C;
+  --brand-muted-text: #5A738E;
+
+  --grid-cell-highlight: rgba(30, 78, 140, 0.08);
+  --grid-cell-border-highlight: #1E4E8C;
+}
+
+html[data-learning-area="financial-excel"].dark,
+.dark[data-learning-area="financial-excel"],
+.dark [data-learning-area="financial-excel"] {
+  --finance-dark-background: #0B1728;
+  --finance-dark-surface: #112238;
+  --finance-dark-surface-raised: #182E4B;
+  --finance-dark-primary: #6BA8E5;
+  --finance-dark-primary-hover: #89BEF0;
+  --finance-dark-border: #2D5073;
+  --finance-dark-text: #E8F1F8;
+  --finance-dark-muted-text: #9DB1C3;
+
+  --background: #0B1728;
+  --surface: #112238;
+  --surface-secondary: #182E4B;
+  --surface-tertiary: #203A5E;
+  
+  --border: #2D5073;
+  --border-strong: #436C95;
+  
+  --text-primary: #E8F1F8;
+  --text-secondary: #9DB1C3;
+  --text-muted: #627D98;
+  
+  --accent: #6BA8E5;
+  --accent-hover: #89BEF0;
+  --accent-subtle: rgba(107, 168, 229, 0.15);
+  --accent-foreground: #0B1728;
+
+  --brand-primary: #6BA8E5;
+  --brand-primary-hover: #89BEF0;
+  --brand-secondary: #4299E1;
+  --brand-accent: #6BA8E5;
+  --brand-soft-background: rgba(107, 168, 229, 0.12);
+  --brand-active-background: rgba(107, 168, 229, 0.2);
+  --brand-border: #2D5073;
+  --brand-text: #E8F1F8;
+  --brand-muted-text: #9DB1C3;
+
+  --grid-header-bg: #182E4B;
+  --grid-header-text: #9DB1C3;
+  --grid-border: #2D5073;
+  --grid-cell-bg: #112238;
+  --grid-cell-selected: rgba(107, 168, 229, 0.2);
+  --grid-cell-highlight: rgba(107, 168, 229, 0.2);
+  --grid-cell-border-highlight: #6BA8E5;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -92,6 +197,29 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Smooth subtle color transition for theme & learning area switching */
+header,
+aside,
+main,
+.ribbon-bookmark,
+.ribbon-triangular {
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    fill 180ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  header,
+  aside,
+  main,
+  .ribbon-bookmark,
+  .ribbon-triangular {
+    transition: none !important;
+  }
 }
 
 /* Custom Scrollbar for Spreadsheet & Code Areas */
@@ -113,7 +241,7 @@ body {
   background: var(--text-muted);
 }
 
-/* Excel Arena Signature Red Bookmark Ribbon */
+/* Excel Arena Signature Bookmark Ribbon (Dynamic Accent) */
 .ribbon-bookmark {
   position: absolute;
   left: 0;
@@ -122,7 +250,6 @@ body {
   width: 4px;
   background-color: var(--accent);
   border-radius: 0 2px 2px 0;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .ribbon-triangular {
@@ -136,7 +263,6 @@ body {
   border-bottom: 5px solid transparent;
   border-left: 6px solid var(--accent);
   filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.15));
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Spreadsheet Grid Utilities */
@@ -149,11 +275,11 @@ body {
   border-right: 1px solid var(--grid-border);
   border-bottom: 1px solid var(--grid-border);
   background-color: var(--grid-cell-bg);
-  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .excel-cell:hover {
   background-color: var(--grid-cell-selected);
+  transition: background-color 0.1s ease;
 }
 
 .excel-cell-header {

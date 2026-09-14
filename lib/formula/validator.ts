@@ -237,10 +237,24 @@ export class FormulaValidator {
     }
 
     // Both are numbers
-    const numA = typeof a === "number" ? a : parseFloat(String(a).replace(/,/g, ""));
-    const numB = typeof b === "number" ? b : parseFloat(String(b).replace(/,/g, ""));
+    const normalizeNumStr = (val: any): string => {
+      let s = String(val).trim();
+      if (/^-?\d{1,3}(\.\d{3})+(,\d+)?$/.test(s)) {
+        s = s.replace(/\./g, "").replace(",", ".");
+      } else {
+        s = s.replace(/,/g, "");
+      }
+      return s;
+    };
 
-    if (!isNaN(numA) && !isNaN(numB) && !isNaN(Number(a)) && !isNaN(Number(b))) {
+    const cleanA = normalizeNumStr(a);
+    const cleanB = normalizeNumStr(b);
+    const isNumA = typeof a === "number" || (!isNaN(parseFloat(cleanA)) && isFinite(Number(cleanA)));
+    const isNumB = typeof b === "number" || (!isNaN(parseFloat(cleanB)) && isFinite(Number(cleanB)));
+
+    if (isNumA && isNumB) {
+      const numA = typeof a === "number" ? a : parseFloat(cleanA);
+      const numB = typeof b === "number" ? b : parseFloat(cleanB);
       return Math.abs(numA - numB) <= tolerance;
     }
 

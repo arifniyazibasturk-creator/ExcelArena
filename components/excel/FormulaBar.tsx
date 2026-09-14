@@ -37,7 +37,7 @@ export const FormulaBar: React.FC<FormulaBarProps> = ({
       return;
     }
 
-    const match = value.match(/^[=]?([A-Za-zÇĞİÖŞÜçğıöşü_]+)\(/i);
+    const match = value.match(/^\s*[=]?\s*([A-Za-zÇĞİÖŞÜçğıöşü_]+)\s*\(/i);
     if (match && match[1]) {
       const canonical = resolveFunction(match[1]);
       if (canonical) {

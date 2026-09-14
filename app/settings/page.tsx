@@ -5,6 +5,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { useI18n } from "@/lib/i18n/I18nContext";
 import { useTheme } from "@/lib/theme/ThemeContext";
 import { progressService } from "@/lib/services/progress";
+import { financialProgressService } from "@/lib/services/financialProgress";
 import {
   Globe,
   Code2,
@@ -253,7 +254,8 @@ export default function SettingsPage() {
             onClick={() => {
               if (confirm(t.profile.resetConfirm)) {
                 progressService.resetAll();
-                showToast("Local progress reset.");
+                financialProgressService.resetAll();
+                showToast(interfaceLocale === "tr" ? "Tüm ilerleme sıfırlandı." : "All progress reset.");
               }
             }}
             className="flex items-center gap-2 px-4 py-2 bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 hover:bg-rose-600 hover:text-white border border-rose-300 dark:border-rose-800 rounded-lg text-xs font-bold transition-all cursor-pointer shrink-0"

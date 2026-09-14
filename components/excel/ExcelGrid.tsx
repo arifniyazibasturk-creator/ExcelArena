@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, memo } from "react";
+import React, { useState, useEffect, useMemo, useCallback, memo } from "react";
 import { ChallengeDataset, DatasetColumn } from "@/lib/formula/types";
 import { Search, Hash, Table as TableIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import { useI18n } from "@/lib/i18n/I18nContext";
@@ -92,6 +92,16 @@ export const ExcelGrid: React.FC<ExcelGridProps> = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(0);
   const [selectedCell, setSelectedCell] = useState<{ col: number; row: number } | null>(null);
+
+  useEffect(() => {
+    setPage(0);
+    setSelectedCell(null);
+    setSearchQuery("");
+  }, [dataset]);
+
+  const handleSelectCell = useCallback((col: number, row: number) => {
+    setSelectedCell({ col, row });
+  }, []);
 
   const filteredRows = useMemo(() => {
     if (!searchQuery.trim()) return dataset.rows;
@@ -190,7 +200,7 @@ export const ExcelGrid: React.FC<ExcelGridProps> = ({
                   columns={dataset.columns}
                   selectedCell={selectedCell}
                   highlightColumnLetter={highlightColumnLetter}
-                  onSelectCell={(col, row) => setSelectedCell({ col, row })}
+                  onSelectCell={handleSelectCell}
                 />
               );
             })}

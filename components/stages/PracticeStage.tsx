@@ -148,10 +148,16 @@ export const PracticeStage: React.FC<PracticeStageProps> = ({ topic, onComplete 
   };
 
   const handleNextChallenge = () => {
-    if (challengeIdx < challenges.length - 1) {
-      goToChallenge(challengeIdx + 1);
+    const updatedCompleted = completedIndices.includes(challengeIdx)
+      ? completedIndices
+      : [...completedIndices, challengeIdx];
+
+    const firstUnsolved = challenges.findIndex((_, idx) => !updatedCompleted.includes(idx));
+
+    if (firstUnsolved !== -1) {
+      goToChallenge(firstUnsolved);
     } else {
-      // Mark practice complete
+      // All challenges completed!
       progressService.markStageCompleted(topic.id, topic.levelId, "practice");
       onComplete();
     }
@@ -314,9 +320,9 @@ export const PracticeStage: React.FC<PracticeStageProps> = ({ topic, onComplete 
                 className="ml-auto flex items-center gap-2 px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold rounded-lg shadow-sm transition-all cursor-pointer hover:translate-x-0.5"
               >
                 <span>
-                  {challengeIdx < challenges.length - 1
-                    ? t.practiceStage.nextChallenge
-                    : t.stages.test}
+                  {(completedIndices.includes(challengeIdx) ? completedIndices.length : completedIndices.length + 1) >= challenges.length
+                    ? t.stages.test
+                    : t.practiceStage.nextChallenge}
                 </span>
                 <ArrowRight className="w-4 h-4" />
               </button>

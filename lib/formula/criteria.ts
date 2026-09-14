@@ -9,6 +9,17 @@ export class CriteriaMatcher {
    *   testCriteria("Istanbul", "<>Ankara") -> true
    *   testCriteria("Product A", "Prod*") -> true
    */
+  private static parseCleanNumber(val: any): number {
+    if (typeof val === "number") return val;
+    let s = String(val ?? "").trim();
+    if (/^-?\d{1,3}(\.\d{3})+(,\d+)?$/.test(s)) {
+      s = s.replace(/\./g, "").replace(",", ".");
+    } else {
+      s = s.replace(/,/g, "");
+    }
+    return parseFloat(s);
+  }
+
   public static test(cellValue: FormulaValue, criteria: FormulaValue): boolean {
     if (criteria === null || criteria === undefined) {
       return cellValue === null || cellValue === undefined || cellValue === "";
@@ -29,47 +40,47 @@ export class CriteriaMatcher {
       } else if (typeof cellValue === "boolean") {
         numCell = cellValue ? 1 : 0;
       } else {
-        numCell = parseFloat(String(cellValue).replace(/,/g, ""));
+        numCell = this.parseCleanNumber(cellValue);
       }
-      return !isNaN(numCell) && numCell === criteria;
+      return !isNaN(numCell) && Math.abs(numCell - criteria) < 1e-9;
     }
 
     const critStr = String(criteria).trim();
 
     // Check operator prefixes in string criteria: >=, <=, <>, >, <, =
     if (critStr.startsWith(">=")) {
-      const target = parseFloat(critStr.substring(2).trim());
+      const target = this.parseCleanNumber(critStr.substring(2));
       const cellNum = this.asNumber(cellValue);
-      return cellNum !== null && !isNaN(target) && cellNum >= target;
+      return cellNum !== null && !isNaN(target) && cellNum >= target - 1e-9;
     }
 
     if (critStr.startsWith("<=")) {
-      const target = parseFloat(critStr.substring(2).trim());
+      const target = this.parseCleanNumber(critStr.substring(2));
       const cellNum = this.asNumber(cellValue);
-      return cellNum !== null && !isNaN(target) && cellNum <= target;
+      return cellNum !== null && !isNaN(target) && cellNum <= target + 1e-9;
     }
 
     if (critStr.startsWith("<>")) {
       const targetStr = critStr.substring(2).trim();
-      const targetNum = parseFloat(targetStr);
+      const targetNum = this.parseCleanNumber(targetStr);
       const cellNum = this.asNumber(cellValue);
 
-      if (!isNaN(targetNum) && cellNum !== null) {
-        return cellNum !== targetNum;
+      if (!isNaN(targetNum) && cellNum !== null && !isNaN(Number(targetStr.replace(/,/g, "")))) {
+        return Math.abs(cellNum - targetNum) > 1e-9;
       }
       return !this.matchesWildcardOrEqual(String(cellValue ?? ""), targetStr);
     }
 
     if (critStr.startsWith(">")) {
-      const target = parseFloat(critStr.substring(1).trim());
+      const target = this.parseCleanNumber(critStr.substring(1));
       const cellNum = this.asNumber(cellValue);
-      return cellNum !== null && !isNaN(target) && cellNum > target;
+      return cellNum !== null && !isNaN(target) && cellNum > target + 1e-9;
     }
 
     if (critStr.startsWith("<")) {
-      const target = parseFloat(critStr.substring(1).trim());
+      const target = this.parseCleanNumber(critStr.substring(1));
       const cellNum = this.asNumber(cellValue);
-      return cellNum !== null && !isNaN(target) && cellNum < target;
+      return cellNum !== null && !isNaN(target) && cellNum < target - 1e-9;
     }
 
     let searchStr = critStr;
@@ -77,11 +88,12 @@ export class CriteriaMatcher {
       searchStr = searchStr.substring(1).trim();
     }
 
-    // Numeric comparison if search string is pure number
-    const targetNum = parseFloat(searchStr);
+    // Numeric comparison if search string is a number
+    const targetNum = this.parseCleanNumber(searchStr);
     const cellNum = this.asNumber(cellValue);
-    if (!isNaN(targetNum) && searchStr === String(targetNum) && cellNum !== null) {
-      return cellNum === targetNum;
+    const numCleaned = searchStr.replace(/,/g, "");
+    if (!isNaN(targetNum) && cellNum !== null && isFinite(Number(numCleaned))) {
+      return Math.abs(cellNum - targetNum) < 1e-9;
     }
 
     // String / wildcard comparison
@@ -89,15 +101,23 @@ export class CriteriaMatcher {
   }
 
   private static asNumber(val: FormulaValue): number | null {
-    if (typeof val === "number") return val;
+    if (typeof val === "number") return isNaN(val) ? null : val;
     if (val === null || val === undefined || val === "") return null;
-    const parsed = parseFloat(String(val).replace(/,/g, ""));
+    const parsed = this.parseCleanNumber(val);
     return isNaN(parsed) ? null : parsed;
   }
 
+  private static normalizeText(str: string): string {
+    return str
+      .replace(/İ/g, "i")
+      .replace(/I/g, "ı")
+      .toLowerCase()
+      .trim();
+  }
+
   private static matchesWildcardOrEqual(text: string, pattern: string): boolean {
-    const normText = text.toLowerCase().trim();
-    const normPattern = pattern.toLowerCase().trim();
+    const normText = this.normalizeText(text);
+    const normPattern = this.normalizeText(pattern);
 
     if (!normPattern.includes("*") && !normPattern.includes("?")) {
       return normText === normPattern;

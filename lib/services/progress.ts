@@ -40,18 +40,20 @@ const STORAGE_KEY_PROGRESS = "excel_arena_progress";
 const STORAGE_KEY_ATTEMPTS = "excel_arena_attempts";
 const STORAGE_KEY_STATS = "excel_arena_stats";
 
+export const DEFAULT_USER_STATS: UserStats = {
+  overallMastery: 0,
+  accuracyRate: 100,
+  challengesSolved: 0,
+  currentStreak: 1,
+  bestStreak: 1,
+  lastActiveDate: null,
+  completedTopicsCount: 0,
+  totalTopicsCount: getTotalTopicCount(),
+};
+
 class ProgressService {
   private progressMap: Map<string, TopicProgress> = new Map();
-  private stats: UserStats = {
-    overallMastery: 0,
-    accuracyRate: 100,
-    challengesSolved: 0,
-    currentStreak: 1,
-    bestStreak: 1,
-    lastActiveDate: null,
-    completedTopicsCount: 0,
-    totalTopicsCount: 0,
-  };
+  private stats: UserStats = { ...DEFAULT_USER_STATS };
 
   constructor() {
     if (typeof window !== "undefined") {

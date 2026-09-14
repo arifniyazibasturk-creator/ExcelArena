@@ -3,6 +3,18 @@ import { CriteriaMatcher } from "../criteria";
 
 type FunctionImplementation = (...args: any[]) => FormulaValue;
 
+function parseNumericVal(val: any): number {
+  if (typeof val === "number") return val;
+  if (typeof val === "boolean") return val ? 1 : 0;
+  let s = String(val ?? "0").trim();
+  if (/^-?\d{1,3}(\.\d{3})+(,\d+)?$/.test(s)) {
+    s = s.replace(/\./g, "").replace(",", ".");
+  } else {
+    s = s.replace(/,/g, "");
+  }
+  return parseFloat(s);
+}
+
 function flattenNumbers(args: any[]): number[] {
   const result: number[] = [];
   function recurse(item: any) {
@@ -11,7 +23,7 @@ function flattenNumbers(args: any[]): number[] {
     } else if (typeof item === "number" && !isNaN(item)) {
       result.push(item);
     } else if (typeof item === "string" && item.trim() !== "") {
-      const parsed = parseFloat(item.replace(/,/g, ""));
+      const parsed = parseNumericVal(item);
       if (!isNaN(parsed)) {
         result.push(parsed);
       }
@@ -106,8 +118,8 @@ export const BUILT_IN_FUNCTIONS: Record<string, FunctionImplementation> = {
     if (typeof value === "string" && value.startsWith("#")) {
       return valueIfError;
     }
-    if (value === undefined || value === null) {
-      return value;
+    if (typeof value === "number" && isNaN(value)) {
+      return valueIfError;
     }
     return value;
   },
@@ -132,7 +144,7 @@ export const BUILT_IN_FUNCTIONS: Record<string, FunctionImplementation> = {
     for (let i = 0; i < range.length; i++) {
       if (CriteriaMatcher.test(range[i], criteria)) {
         const val = targets[i];
-        const num = typeof val === "number" ? val : parseFloat(String(val ?? "0").replace(/,/g, ""));
+        const num = parseNumericVal(val);
         if (!isNaN(num)) {
           sum += num;
         }
@@ -150,7 +162,7 @@ export const BUILT_IN_FUNCTIONS: Record<string, FunctionImplementation> = {
     for (let i = 0; i < range.length; i++) {
       if (CriteriaMatcher.test(range[i], criteria)) {
         const val = targets[i];
-        const num = typeof val === "number" ? val : parseFloat(String(val ?? "0").replace(/,/g, ""));
+        const num = parseNumericVal(val);
         if (!isNaN(num)) {
           sum += num;
           count++;
@@ -205,7 +217,7 @@ export const BUILT_IN_FUNCTIONS: Record<string, FunctionImplementation> = {
 
       if (satisfiesAll) {
         const val = sumRange[rowIdx];
-        const num = typeof val === "number" ? val : parseFloat(String(val ?? "0").replace(/,/g, ""));
+        const num = parseNumericVal(val);
         if (!isNaN(num)) sum += num;
       }
     }
@@ -237,7 +249,7 @@ export const BUILT_IN_FUNCTIONS: Record<string, FunctionImplementation> = {
 
       if (satisfiesAll) {
         const val = avgRange[rowIdx];
-        const num = typeof val === "number" ? val : parseFloat(String(val ?? "0").replace(/,/g, ""));
+        const num = parseNumericVal(val);
         if (!isNaN(num)) {
           sum += num;
           count++;
@@ -385,6 +397,10 @@ export const BUILT_IN_FUNCTIONS: Record<string, FunctionImplementation> = {
     const colIdx = (typeof colIndex === "number" ? colIndex : parseInt(String(colIndex), 10)) - 1;
     if (isNaN(colIdx) || colIdx < 0) return "#VALUE!";
 
+    const normalizedTable: any[][] = Array.isArray(tableArray[0])
+      ? (tableArray as any[][])
+      : tableArray.map((cell) => [cell]);
+
     const isApproximate =
       rangeLookup === true ||
       rangeLookup === 1 ||
@@ -393,8 +409,8 @@ export const BUILT_IN_FUNCTIONS: Record<string, FunctionImplementation> = {
       String(rangeLookup).toLowerCase() === "dogru";
 
     if (!isApproximate) {
-      for (let i = 0; i < tableArray.length; i++) {
-        const row = tableArray[i];
+      for (let i = 0; i < normalizedTable.length; i++) {
+        const row = normalizedTable[i];
         if (Array.isArray(row) && row.length > 0) {
           if (CriteriaMatcher.test(row[0], lookupValue)) {
             return row[colIdx] ?? "#REF!";
@@ -408,8 +424,8 @@ export const BUILT_IN_FUNCTIONS: Record<string, FunctionImplementation> = {
     let bestRowIdx = -1;
     const lookupNum = typeof lookupValue === "number" ? lookupValue : parseFloat(String(lookupValue));
 
-    for (let i = 0; i < tableArray.length; i++) {
-      const row = tableArray[i];
+    for (let i = 0; i < normalizedTable.length; i++) {
+      const row = normalizedTable[i];
       if (Array.isArray(row) && row.length > 0) {
         const cellVal = row[0];
         const cellNum = typeof cellVal === "number" ? cellVal : parseFloat(String(cellVal));
@@ -426,7 +442,7 @@ export const BUILT_IN_FUNCTIONS: Record<string, FunctionImplementation> = {
     }
 
     if (bestRowIdx !== -1) {
-      return tableArray[bestRowIdx][colIdx] ?? "#REF!";
+      return normalizedTable[bestRowIdx][colIdx] ?? "#REF!";
     }
     return "#N/A";
   },
@@ -439,9 +455,15 @@ export const BUILT_IN_FUNCTIONS: Record<string, FunctionImplementation> = {
   ) => {
     if (!Array.isArray(tableArray) || tableArray.length === 0) return "#VALUE!";
     const rowIdx = (typeof rowIndex === "number" ? rowIndex : parseInt(String(rowIndex), 10)) - 1;
-    if (isNaN(rowIdx) || rowIdx < 0 || !tableArray[rowIdx]) return "#REF!";
+    if (isNaN(rowIdx) || rowIdx < 0) return "#REF!";
 
-    const headerRow = tableArray[0];
+    const normalizedTable: any[][] = Array.isArray(tableArray[0])
+      ? (tableArray as any[][])
+      : [tableArray];
+
+    if (!normalizedTable[rowIdx]) return "#REF!";
+
+    const headerRow = normalizedTable[0];
     if (!Array.isArray(headerRow)) return "#VALUE!";
 
     const isApproximate =
@@ -453,7 +475,7 @@ export const BUILT_IN_FUNCTIONS: Record<string, FunctionImplementation> = {
     if (!isApproximate) {
       for (let col = 0; col < headerRow.length; col++) {
         if (CriteriaMatcher.test(headerRow[col], lookupValue)) {
-          return tableArray[rowIdx][col] ?? "#REF!";
+          return normalizedTable[rowIdx][col] ?? "#REF!";
         }
       }
       return "#N/A";
@@ -476,7 +498,7 @@ export const BUILT_IN_FUNCTIONS: Record<string, FunctionImplementation> = {
     }
 
     if (bestColIdx !== -1) {
-      return tableArray[rowIdx][bestColIdx] ?? "#REF!";
+      return normalizedTable[rowIdx][bestColIdx] ?? "#REF!";
     }
     return "#N/A";
   },
@@ -488,6 +510,10 @@ export const BUILT_IN_FUNCTIONS: Record<string, FunctionImplementation> = {
 
     // 1D array
     if (!Array.isArray(array[0])) {
+      if (colNum !== undefined) {
+        const col = typeof colNum === "number" ? colNum : parseInt(String(colNum), 10);
+        if (col !== 1) return "#REF!";
+      }
       return array[row - 1] ?? "#REF!";
     }
 

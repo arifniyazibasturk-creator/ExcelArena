@@ -72,7 +72,7 @@ export class FormulaTokenizer {
         continue;
       }
 
-      if (char === "+" || char === "-" || char === "*" || char === "/" || char === "^" || char === "&") {
+      if (char === "+" || char === "-" || char === "*" || char === "/" || char === "^" || char === "&" || char === "%") {
         tokens.push({ type: "OPERATOR", value: char, position: startPos });
         this.pos++;
         continue;

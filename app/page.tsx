@@ -5,7 +5,7 @@ import Link from "next/link";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useI18n } from "@/lib/i18n/I18nContext";
 import { LEVELS, getLevelById, getTopicById } from "@/lib/content/levels";
-import { progressService, UserStats } from "@/lib/services/progress";
+import { progressService, UserStats, DEFAULT_USER_STATS } from "@/lib/services/progress";
 import {
   Trophy,
   Target,
@@ -19,22 +19,50 @@ import {
   BarChart3,
 } from "lucide-react";
 
+import { useLearningArea } from "@/lib/context/LearningAreaContext";
+import { FinancialDashboard } from "@/components/financial/FinancialDashboard";
+
 export default function DashboardPage() {
   const { interfaceLocale, t } = useI18n();
-  const [stats, setStats] = useState<UserStats>(progressService.getStats());
+  const { learningArea } = useLearningArea();
+  const [stats, setStats] = useState<UserStats>(DEFAULT_USER_STATS);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+    setStats({ ...progressService.getStats() });
     const updateStats = () => setStats({ ...progressService.getStats() });
     window.addEventListener("excel_arena_progress_updated", updateStats);
     return () => window.removeEventListener("excel_arena_progress_updated", updateStats);
   }, []);
 
-  const nextRec = progressService.getNextRecommendedTopic();
+  if (learningArea === "financial-excel") {
+    return (
+      <AppLayout showLeftNav={false}>
+        <FinancialDashboard />
+      </AppLayout>
+    );
+  }
+
+  const defaultRec = { levelId: "level-01", topicId: "cell-references" };
+  const nextRec = mounted ? progressService.getNextRecommendedTopic() : defaultRec;
   const recLevel = getLevelById(nextRec.levelId) || LEVELS[0];
   const recTopic = getTopicById(nextRec.levelId, nextRec.topicId) || recLevel.topics[0];
-  const recProg = progressService.getTopicProgress(recTopic.id, recLevel.id);
+  const recProg = mounted
+    ? progressService.getTopicProgress(recTopic.id, recLevel.id)
+    : {
+        topicId: recTopic.id,
+        levelId: recLevel.id,
+        learnCompleted: false,
+        practiceCompleted: false,
+        testCompleted: false,
+        testScore: 0,
+        solveCompleted: false,
+        attemptsCount: 0,
+        correctAttemptsCount: 0,
+        lastUpdated: "",
+        masteryPercentage: 0,
+      };
 
   return (
     <AppLayout showLeftNav={false}>
@@ -77,10 +105,16 @@ export default function DashboardPage() {
             <div className="w-full max-w-md pt-2">
               <div className="flex items-center justify-between text-xs font-mono mb-1.5">
                 <span className="font-semibold text-foreground">
-                  Mastery: <strong>{recProg.masteryPercentage}%</strong>
+                  Mastery: <strong suppressHydrationWarning>{recProg.masteryPercentage}%</strong>
                 </span>
-                <span className="text-foreground-muted">
-                  {recProg.solveCompleted ? "Completed" : "In Progress"}
+                <span className="text-foreground-muted" suppressHydrationWarning>
+                  {recProg.solveCompleted
+                    ? interfaceLocale === "tr"
+                      ? "Tamamlandı"
+                      : "Completed"
+                    : interfaceLocale === "tr"
+                    ? "Devam Ediyor"
+                    : "In Progress"}
                 </span>
               </div>
               <div className="w-full h-2 bg-surface-secondary rounded-full overflow-hidden">
@@ -114,7 +148,10 @@ export default function DashboardPage() {
               </span>
               <Trophy className="w-4 h-4 text-amber-500" />
             </div>
-            <div className="text-2xl sm:text-3xl font-black font-mono text-foreground">
+            <div
+              suppressHydrationWarning
+              className="text-2xl sm:text-3xl font-black font-mono text-foreground"
+            >
               {stats.overallMastery}%
             </div>
             <div className="w-full h-1 bg-surface-secondary rounded-full overflow-hidden mt-1">
@@ -131,7 +168,10 @@ export default function DashboardPage() {
               <span className="text-xs font-mono uppercase tracking-wider">{t.common.accuracy}</span>
               <Target className="w-4 h-4 text-blue-500" />
             </div>
-            <div className="text-2xl sm:text-3xl font-black font-mono text-foreground">
+            <div
+              suppressHydrationWarning
+              className="text-2xl sm:text-3xl font-black font-mono text-foreground"
+            >
               {stats.accuracyRate}%
             </div>
             <div className="w-full h-1 bg-surface-secondary rounded-full overflow-hidden mt-1">
@@ -148,10 +188,15 @@ export default function DashboardPage() {
               <span className="text-xs font-mono uppercase tracking-wider">{t.common.solved}</span>
               <CheckCircle2 className="w-4 h-4 text-emerald-500" />
             </div>
-            <div className="text-2xl sm:text-3xl font-black font-mono text-foreground">
+            <div
+              suppressHydrationWarning
+              className="text-2xl sm:text-3xl font-black font-mono text-foreground"
+            >
               {stats.challengesSolved}
             </div>
-            <span className="text-[11px] text-foreground-muted">Practiced & Solved</span>
+            <span className="text-[11px] text-foreground-muted">
+              {interfaceLocale === "tr" ? "Alıştırma ve Çözüm" : "Practiced & Solved"}
+            </span>
           </div>
 
           {/* Best & Current Streak */}
@@ -160,13 +205,18 @@ export default function DashboardPage() {
               <span className="text-xs font-mono uppercase tracking-wider">{t.common.bestStreak}</span>
               <Flame className="w-4 h-4 text-accent" />
             </div>
-            <div className="text-2xl sm:text-3xl font-black font-mono text-accent">
+            <div
+              suppressHydrationWarning
+              className="text-2xl sm:text-3xl font-black font-mono text-accent"
+            >
               {stats.currentStreak}{" "}
               <span className="text-xs font-normal text-foreground-muted">
                 / Best {stats.bestStreak}
               </span>
             </div>
-            <span className="text-[11px] text-foreground-muted">Consecutive Days</span>
+            <span className="text-[11px] text-foreground-muted">
+              {interfaceLocale === "tr" ? "Ardışık Gün" : "Consecutive Days"}
+            </span>
           </div>
         </div>
 
@@ -185,7 +235,9 @@ export default function DashboardPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {LEVELS.slice(0, 3).map((level) => {
-              const lvlMastery = progressService.getLevelMastery(level.id);
+              const lvlMastery = mounted
+                ? progressService.getLevelMastery(level.id)
+                : { percentage: 0, completedTopics: 0, totalTopics: level.topics.length };
 
               return (
                 <div
@@ -197,7 +249,10 @@ export default function DashboardPage() {
                       <span className="font-mono text-xs font-bold text-accent">
                         LEVEL {level.code}
                       </span>
-                      <span className="text-xs font-mono font-semibold text-foreground-muted">
+                      <span
+                        suppressHydrationWarning
+                        className="text-xs font-mono font-semibold text-foreground-muted"
+                      >
                         {lvlMastery.percentage}%
                       </span>
                     </div>
@@ -213,7 +268,9 @@ export default function DashboardPage() {
                     {/* Topic Tags */}
                     <div className="flex flex-wrap gap-1.5 pt-2">
                       {level.topics.map((tItem) => {
-                        const prog = progressService.getTopicProgress(tItem.id, level.id);
+                        const prog = mounted
+                          ? progressService.getTopicProgress(tItem.id, level.id)
+                          : { masteryPercentage: 0 };
                         const isDone = prog.masteryPercentage >= 80;
 
                         return (

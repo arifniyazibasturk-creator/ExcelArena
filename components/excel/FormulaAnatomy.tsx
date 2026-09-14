@@ -51,7 +51,9 @@ export const FormulaAnatomy: React.FC<FormulaAnatomyProps> = ({
 
       {/* Formula Code Highlighting Bar */}
       <div className="p-3 bg-surface-secondary rounded-lg border border-border font-mono text-sm sm:text-base flex items-center justify-center flex-wrap gap-1">
-        <span className="text-foreground-muted font-bold">=</span>
+        {!parts[0]?.code?.startsWith("=") && (
+          <span className="text-foreground-muted font-bold">=</span>
+        )}
         {parts.map((part, idx) => {
           const isHovered = hoveredIdx === idx;
           return (

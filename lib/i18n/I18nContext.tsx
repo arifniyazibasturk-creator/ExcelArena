@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState, useMemo } from "react";
+import React, { createContext, useContext, useEffect, useState, useMemo, useCallback } from "react";
 import { InterfaceLocale, FormulaLocaleSetting, ResolvedFormulaLocale, CanonicalFunctionId } from "./types";
 import { TRANSLATIONS, TranslationStrings } from "./translations";
 import { getLocalizedFunctionName, getLocalizedSyntax, resolveToCanonicalFunction, FORMULA_DEFINITIONS } from "./formulaLocale";
@@ -48,19 +48,19 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     setMounted(true);
   }, []);
 
-  const setInterfaceLocale = (locale: InterfaceLocale) => {
+  const setInterfaceLocale = useCallback((locale: InterfaceLocale) => {
     setInterfaceLocaleState(locale);
     try {
       localStorage.setItem("excel_arena_ui_lang", locale);
     } catch {}
-  };
+  }, []);
 
-  const setFormulaLocaleSetting = (setting: FormulaLocaleSetting) => {
+  const setFormulaLocaleSetting = useCallback((setting: FormulaLocaleSetting) => {
     setFormulaLocaleSettingState(setting);
     try {
       localStorage.setItem("excel_arena_formula_lang", setting);
     } catch {}
-  };
+  }, []);
 
   const resolvedFormulaLocale: ResolvedFormulaLocale = useMemo(() => {
     if (formulaLocaleSetting === "auto") {
@@ -73,22 +73,22 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     return TRANSLATIONS[interfaceLocale] || TRANSLATIONS.en;
   }, [interfaceLocale]);
 
-  const getLocalizedFunction = (canonical: CanonicalFunctionId): string => {
+  const getLocalizedFunction = useCallback((canonical: CanonicalFunctionId): string => {
     return getLocalizedFunctionName(canonical, resolvedFormulaLocale);
-  };
+  }, [resolvedFormulaLocale]);
 
-  const getSyntaxExample = (canonical: CanonicalFunctionId): string => {
+  const getSyntaxExample = useCallback((canonical: CanonicalFunctionId): string => {
     return getLocalizedSyntax(canonical, resolvedFormulaLocale);
-  };
+  }, [resolvedFormulaLocale]);
 
-  const resolveFunction = (name: string): CanonicalFunctionId | null => {
+  const resolveFunction = useCallback((name: string): CanonicalFunctionId | null => {
     return resolveToCanonicalFunction(name);
-  };
+  }, []);
 
   /**
    * Helper that replaces canonical or opposite-locale function names in a formula with the user's active formula locale
    */
-  const localizeFormulaString = (formula: string, targetLocale?: ResolvedFormulaLocale): string => {
+  const localizeFormulaString = useCallback((formula: string, targetLocale?: ResolvedFormulaLocale): string => {
     const loc = targetLocale || resolvedFormulaLocale;
     let result = formula;
 
@@ -123,23 +123,34 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     }
 
     return result;
-  };
+  }, [resolvedFormulaLocale]);
+
+  const contextValue = useMemo(() => ({
+    interfaceLocale,
+    formulaLocaleSetting,
+    resolvedFormulaLocale,
+    t,
+    setInterfaceLocale,
+    setFormulaLocaleSetting,
+    getLocalizedFunction,
+    getSyntaxExample,
+    resolveFunction,
+    localizeFormulaString,
+  }), [
+    interfaceLocale,
+    formulaLocaleSetting,
+    resolvedFormulaLocale,
+    t,
+    setInterfaceLocale,
+    setFormulaLocaleSetting,
+    getLocalizedFunction,
+    getSyntaxExample,
+    resolveFunction,
+    localizeFormulaString,
+  ]);
 
   return (
-    <I18nContext.Provider
-      value={{
-        interfaceLocale,
-        formulaLocaleSetting,
-        resolvedFormulaLocale,
-        t,
-        setInterfaceLocale,
-        setFormulaLocaleSetting,
-        getLocalizedFunction,
-        getSyntaxExample,
-        resolveFunction,
-        localizeFormulaString,
-      }}
-    >
+    <I18nContext.Provider value={contextValue}>
       {children}
     </I18nContext.Provider>
   );

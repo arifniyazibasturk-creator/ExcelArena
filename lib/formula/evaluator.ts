@@ -319,15 +319,24 @@ export class FormulaEvaluator {
     if (typeof val === "number") return isNaN(val) ? null : val;
     if (typeof val === "boolean") return val ? 1 : 0;
     if (val === null || val === undefined || val === "") return 0;
-    const parsed = parseFloat(String(val).replace(/,/g, ""));
+    let s = String(val).trim();
+    if (/^-?\d{1,3}(\.\d{3})+(,\d+)?$/.test(s)) {
+      s = s.replace(/\./g, "").replace(",", ".");
+    } else {
+      s = s.replace(/,/g, "");
+    }
+    const parsed = parseFloat(s);
     return isNaN(parsed) ? null : parsed;
   }
 
   private areEqual(a: any, b: any): boolean {
-    if (typeof a === "number" && typeof b === "number") {
-      return Math.abs(a - b) < 1e-9;
+    const n1 = typeof a === "number" ? a : (typeof a === "string" && a.trim() !== "" && isFinite(Number(a.replace(/,/g, ""))) ? parseFloat(a.replace(/,/g, "")) : null);
+    const n2 = typeof b === "number" ? b : (typeof b === "string" && b.trim() !== "" && isFinite(Number(b.replace(/,/g, ""))) ? parseFloat(b.replace(/,/g, "")) : null);
+
+    if (n1 !== null && n2 !== null) {
+      return Math.abs(n1 - n2) < 1e-9;
     }
-    return String(a ?? "").toLowerCase() === String(b ?? "").toLowerCase();
+    return String(a ?? "").trim().toLowerCase() === String(b ?? "").trim().toLowerCase();
   }
 
   private compare(a: any, b: any): number {

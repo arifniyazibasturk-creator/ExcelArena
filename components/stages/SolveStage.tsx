@@ -111,7 +111,7 @@ export const SolveStage: React.FC<SolveStageProps> = ({ topic, onComplete }) => 
       <ExcelGrid
         dataset={solve.dataset}
         maxHeight="280px"
-        title="Production Data (Full Dataset)"
+        title={interfaceLocale === "tr" ? "Üretim Verisi (Tam Veri Seti)" : "Production Data (Full Dataset)"}
       />
 
       {/* 3. Formula Input */}

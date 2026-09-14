@@ -155,7 +155,24 @@ export class FormulaParser {
       } as UnaryExpressionNode;
     }
 
-    return this.parsePrimary();
+    return this.parsePostfix();
+  }
+
+  // Level 6.5: Postfix (%)
+  private parsePostfix(): ASTNode {
+    let expr = this.parsePrimary();
+    while (this.matchOperator("%")) {
+      expr = {
+        type: "BinaryExpression",
+        operator: "/",
+        left: expr,
+        right: {
+          type: "NumberLiteral",
+          value: 100,
+        },
+      } as BinaryExpressionNode;
+    }
+    return expr;
   }
 
   // Level 7: Primary / Atoms
