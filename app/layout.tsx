@@ -8,6 +8,13 @@ export const metadata: Metadata = {
   title: "Excel Arena — Master Excel Through Practical Challenges",
   description:
     "An interactive Excel learning platform built around challenges, progression, and mastery. Learn -> Practice -> Test -> Solve.",
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
+  },
 };
 
 export default function RootLayout({
@@ -18,6 +25,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning data-learning-area="basic-excel">
       <head>
+        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -25,6 +33,8 @@ export default function RootLayout({
                 var area = localStorage.getItem('excel_arena_active_learning_area');
                 if (area === 'financial-excel') {
                   document.documentElement.setAttribute('data-learning-area', 'financial-excel');
+                  var link = document.querySelector("link[rel~='icon']");
+                  if (link) link.setAttribute('href', '/icon-financial.svg');
                 } else {
                   document.documentElement.setAttribute('data-learning-area', 'basic-excel');
                 }

@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <linearGradient id="ea-navy-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2B6CB0" />
+      <stop offset="50%" stop-color="#1E4E8C" />
+      <stop offset="100%" stop-color="#102A4C" />
+    </linearGradient>
+  </defs>
+
+  <!-- Squircle Base -->
+  <rect width="32" height="32" rx="7" fill="url(#ea-navy-grad)" />
+
+  <!-- Subtle Financial Model Spreadsheet Grid Accent -->
+  <g opacity="0.25" stroke="#E8F1F8" stroke-width="0.75" stroke-linecap="round">
+    <line x1="4" y1="21" x2="15" y2="21" />
+    <line x1="4" y1="25.5" x2="15" y2="25.5" />
+    <line x1="7.5" y1="17.5" x2="7.5" y2="28" />
+    <line x1="12" y1="17.5" x2="12" y2="28" />
+  </g>
+
+  <!-- Vector EA Monogram -->
+  <g fill="#FFFFFF">
+    <!-- Letter E -->
+    <path d="M 5.5 8.5 H 13.5 V 11.5 H 8.5 V 14.5 H 12.5 V 17.5 H 8.5 V 20.5 H 13.5 V 23.5 H 5.5 Z" />
+    <!-- Letter A -->
+    <path d="M 21.25 8.5 L 26.5 23.5 H 23.5 L 22.3 20 H 20.2 L 19 23.5 H 16 Z M 21.25 13 L 20 17.5 H 22.5 Z" />
+  </g>
+</svg>
