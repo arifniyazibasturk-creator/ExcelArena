@@ -22,7 +22,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col antialiased">
+    <div className="min-h-screen bg-background text-foreground flex flex-col antialiased overflow-x-hidden w-full">
       <Header />
       <div className="flex-1 flex overflow-hidden relative">
         {/* Desktop Sidebar */}

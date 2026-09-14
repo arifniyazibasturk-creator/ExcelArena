@@ -81,16 +81,16 @@ export const Header: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-30 h-14 border-b border-border bg-surface/90 backdrop-blur-md transition-colors select-none">
-      <div className="max-w-7xl mx-auto h-full px-3 sm:px-6 flex items-center justify-between gap-3 sm:gap-4">
+      <div className="max-w-7xl mx-auto h-full px-2.5 sm:px-6 flex items-center justify-between gap-1.5 sm:gap-4">
         {/* Left: Brand Identity */}
-        <div className="flex items-center gap-4 sm:gap-6 shrink-0">
-          <Link href="/" className="flex items-center gap-2 group">
+        <div className="flex items-center gap-2 sm:gap-6 shrink-0">
+          <Link href="/" className="flex items-center gap-1.5 sm:gap-2 group">
             {/* Dynamic Geometric Arena Icon (Red in Basic, Navy in Financial) */}
-            <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center text-accent-foreground font-black text-sm tracking-tighter shadow-sm group-hover:scale-105 transition-all">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-accent flex items-center justify-center text-accent-foreground font-black text-xs sm:text-sm tracking-tighter shadow-sm group-hover:scale-105 transition-all shrink-0">
               <span className="font-mono">EA</span>
             </div>
             <div className="flex flex-col">
-              <span className="font-black tracking-wider text-sm text-foreground flex items-center gap-0.5">
+              <span className="font-black tracking-wider text-xs sm:text-sm text-foreground flex items-center gap-0.5">
                 EXCEL<span className="text-accent">ARENA</span>
               </span>
               <span className="text-[9px] font-mono tracking-widest text-foreground-muted uppercase hidden sm:inline">
@@ -133,7 +133,7 @@ export const Header: React.FC = () => {
         <div
           role="tablist"
           aria-label="ExcelArena Learning Area"
-          className="flex items-center p-1 rounded-xl bg-surface-secondary/80 border border-border shrink-0"
+          className="flex items-center p-0.5 sm:p-1 rounded-lg sm:rounded-xl bg-surface-secondary/80 border border-border shrink-0"
         >
           <button
             role="tab"
@@ -142,13 +142,14 @@ export const Header: React.FC = () => {
             aria-selected={!isFinancial}
             aria-controls="panel-basic-excel"
             onClick={() => handleTabSwitch("basic-excel")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+            className={`px-2 py-1 sm:px-3 sm:py-1.5 rounded-md sm:rounded-lg text-[11px] sm:text-xs font-bold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
               !isFinancial
                 ? "bg-accent text-accent-foreground shadow-2xs"
                 : "text-foreground-secondary hover:text-foreground hover:bg-surface/50"
             }`}
           >
-            <span>{isTr ? "Temel Excel" : "Basic Excel"}</span>
+            <span className="inline min-[400px]:hidden">{isTr ? "Temel" : "Basic"}</span>
+            <span className="hidden min-[400px]:inline">{isTr ? "Temel Excel" : "Basic Excel"}</span>
           </button>
 
           <button
@@ -158,13 +159,14 @@ export const Header: React.FC = () => {
             aria-selected={isFinancial}
             aria-controls="panel-financial-excel"
             onClick={() => handleTabSwitch("financial-excel")}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+            className={`px-2 py-1 sm:px-3 sm:py-1.5 rounded-md sm:rounded-lg text-[11px] sm:text-xs font-bold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
               isFinancial
                 ? "bg-accent text-accent-foreground shadow-2xs"
                 : "text-foreground-secondary hover:text-foreground hover:bg-surface/50"
             }`}
           >
-            <span>{isTr ? "Finansal Excel" : "Financial Excel"}</span>
+            <span className="inline min-[400px]:hidden">{isTr ? "Finansal" : "Financial"}</span>
+            <span className="hidden min-[400px]:inline">{isTr ? "Finansal Excel" : "Financial Excel"}</span>
           </button>
         </div>
 
@@ -231,9 +233,9 @@ export const Header: React.FC = () => {
         </div>
 
         {/* Right: Language Pill, Theme Toggle, Mobile Menu */}
-        <div className="flex items-center gap-2 relative">
-          {/* Dual Language Selector Dropdown */}
-          <div className="relative">
+        <div className="flex items-center gap-1.5 sm:gap-2 relative shrink-0">
+          {/* Dual Language Selector Dropdown - Desktop Only */}
+          <div className="relative hidden md:block">
             <button
               onClick={() => setLangMenuOpen(!langMenuOpen)}
               type="button"
@@ -254,103 +256,106 @@ export const Header: React.FC = () => {
                   onClick={() => setLangMenuOpen(false)}
                 />
                 <div className="absolute right-0 top-full mt-2 w-64 bg-surface border border-border rounded-xl shadow-xl z-50 p-3 flex flex-col gap-3 animate-fade-in">
-                {/* Interface Language */}
-                <div>
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-foreground-muted font-bold block mb-1.5">
-                    {t.settings.interfaceLanguage}
-                  </span>
-                  <div className="grid grid-cols-2 gap-1.5">
-                    <button
-                      onClick={() => {
-                        setInterfaceLocale("en");
-                        setLangMenuOpen(false);
-                      }}
-                      className={`px-2.5 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${
-                        interfaceLocale === "en"
-                          ? "bg-accent text-accent-foreground border-accent"
-                          : "border-border bg-surface-secondary/50 text-foreground hover:bg-surface-secondary"
-                      }`}
-                    >
-                      English
-                    </button>
-                    <button
-                      onClick={() => {
-                        setInterfaceLocale("tr");
-                        setLangMenuOpen(false);
-                      }}
-                      className={`px-2.5 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${
-                        interfaceLocale === "tr"
-                          ? "bg-accent text-accent-foreground border-accent"
-                          : "border-border bg-surface-secondary/50 text-foreground hover:bg-surface-secondary"
-                      }`}
-                    >
-                      Türkçe
-                    </button>
-                  </div>
-                </div>
-
-                {/* Formula Language */}
-                <div className="border-t border-border pt-2.5">
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-[10px] font-mono uppercase tracking-wider text-foreground-muted font-bold">
-                      {t.settings.formulaLanguage}
+                  {/* Interface Language */}
+                  <div>
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-foreground-muted font-bold block mb-1.5">
+                      {t.settings.interfaceLanguage}
                     </span>
-                    <Code2 className="w-3 h-3 text-accent" />
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <button
+                        onClick={() => {
+                          setInterfaceLocale("en");
+                          setLangMenuOpen(false);
+                        }}
+                        className={`px-2.5 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${
+                          interfaceLocale === "en"
+                            ? "bg-accent text-accent-foreground border-accent"
+                            : "border-border bg-surface-secondary/50 text-foreground hover:bg-surface-secondary"
+                        }`}
+                      >
+                        English
+                      </button>
+                      <button
+                        onClick={() => {
+                          setInterfaceLocale("tr");
+                          setLangMenuOpen(false);
+                        }}
+                        className={`px-2.5 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${
+                          interfaceLocale === "tr"
+                            ? "bg-accent text-accent-foreground border-accent"
+                            : "border-border bg-surface-secondary/50 text-foreground hover:bg-surface-secondary"
+                        }`}
+                      >
+                        Türkçe
+                      </button>
+                    </div>
                   </div>
-                  <div className="grid grid-cols-3 gap-1">
-                    <button
-                      onClick={() => {
-                        setFormulaLocaleSetting("auto");
-                        setLangMenuOpen(false);
-                      }}
-                      className={`px-2 py-1 text-[11px] font-semibold rounded border transition-colors ${
-                        formulaLocaleSetting === "auto"
-                          ? "bg-accent/15 text-accent border-accent font-bold"
-                          : "border-border bg-surface-secondary/50 text-foreground-secondary hover:text-foreground"
-                      }`}
-                    >
-                      Auto
-                    </button>
-                    <button
-                      onClick={() => {
-                        setFormulaLocaleSetting("en");
-                        setLangMenuOpen(false);
-                      }}
-                      className={`px-2 py-1 text-[11px] font-semibold rounded border transition-colors ${
-                        formulaLocaleSetting === "en"
-                          ? "bg-accent/15 text-accent border-accent font-bold"
-                          : "border-border bg-surface-secondary/50 text-foreground-secondary hover:text-foreground"
-                      }`}
-                    >
-                      =SUM
-                    </button>
-                    <button
-                      onClick={() => {
-                        setFormulaLocaleSetting("tr");
-                        setLangMenuOpen(false);
-                      }}
-                      className={`px-2 py-1 text-[11px] font-semibold rounded border transition-colors ${
-                        formulaLocaleSetting === "tr"
-                          ? "bg-accent/15 text-accent border-accent font-bold"
-                          : "border-border bg-surface-secondary/50 text-foreground-secondary hover:text-foreground"
-                      }`}
-                    >
-                      =TOPLA
-                    </button>
+
+                  {/* Formula Language */}
+                  <div className="border-t border-border pt-2.5">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-[10px] font-mono uppercase tracking-wider text-foreground-muted font-bold">
+                        {t.settings.formulaLanguage}
+                      </span>
+                      <Code2 className="w-3 h-3 text-accent" />
+                    </div>
+                    <div className="grid grid-cols-3 gap-1">
+                      <button
+                        onClick={() => {
+                          setFormulaLocaleSetting("auto");
+                          setLangMenuOpen(false);
+                        }}
+                        className={`px-2 py-1 text-[11px] font-semibold rounded border transition-colors ${
+                          formulaLocaleSetting === "auto"
+                            ? "bg-accent/15 text-accent border-accent font-bold"
+                            : "border-border bg-surface-secondary/50 text-foreground-secondary hover:text-foreground"
+                        }`}
+                      >
+                        Auto
+                      </button>
+                      <button
+                        onClick={() => {
+                          setFormulaLocaleSetting("en");
+                          setLangMenuOpen(false);
+                        }}
+                        className={`px-2 py-1 text-[11px] font-semibold rounded border transition-colors ${
+                          formulaLocaleSetting === "en"
+                            ? "bg-accent/15 text-accent border-accent font-bold"
+                            : "border-border bg-surface-secondary/50 text-foreground-secondary hover:text-foreground"
+                        }`}
+                      >
+                        =SUM
+                      </button>
+                      <button
+                        onClick={() => {
+                          setFormulaLocaleSetting("tr");
+                          setLangMenuOpen(false);
+                        }}
+                        className={`px-2 py-1 text-[11px] font-semibold rounded border transition-colors ${
+                          formulaLocaleSetting === "tr"
+                            ? "bg-accent/15 text-accent border-accent font-bold"
+                            : "border-border bg-surface-secondary/50 text-foreground-secondary hover:text-foreground"
+                        }`}
+                      >
+                        =TOPLA
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </>
-          )}
+              </>
+            )}
           </div>
 
-          {/* Theme Toggle */}
-          <ThemeToggle />
+          {/* Theme Toggle - Desktop Only */}
+          <div className="hidden md:flex items-center">
+            <ThemeToggle />
+          </div>
 
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileNavOpen(!mobileNavOpen)}
-            className="md:hidden p-1.5 rounded-lg border border-border text-foreground-secondary hover:text-foreground"
+            aria-label="Toggle navigation menu"
+            className="md:hidden p-1.5 rounded-lg border border-border text-foreground-secondary hover:text-foreground hover:bg-surface-secondary/80 transition-colors shrink-0 cursor-pointer"
           >
             {mobileNavOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -364,7 +369,7 @@ export const Header: React.FC = () => {
             className="fixed inset-0 top-14 bg-black/40 backdrop-blur-xs z-20 md:hidden animate-fade-in"
             onClick={() => setMobileNavOpen(false)}
           />
-          <div className="md:hidden relative z-30 border-b border-border bg-surface p-4 flex flex-col gap-3 animate-slide-up shadow-xl">
+          <div className="md:hidden fixed top-14 left-0 right-0 z-30 border-b border-border bg-surface p-4 flex flex-col gap-3.5 animate-slide-up shadow-xl max-h-[calc(100vh-3.5rem)] overflow-y-auto">
             {/* Learning Area Selector on Mobile */}
             <div className="flex items-center p-1 rounded-xl bg-surface-secondary border border-border">
               <button
@@ -373,10 +378,10 @@ export const Header: React.FC = () => {
                   handleTabSwitch("basic-excel");
                   setMobileNavOpen(false);
                 }}
-                className={`flex-1 py-1.5 rounded-lg text-xs font-bold text-center ${
+                className={`flex-1 py-1.5 rounded-lg text-xs font-bold text-center transition-colors cursor-pointer ${
                   !isFinancial
-                    ? "bg-accent text-accent-foreground"
-                    : "text-foreground-secondary"
+                    ? "bg-accent text-accent-foreground shadow-2xs"
+                    : "text-foreground-secondary hover:text-foreground"
                 }`}
               >
                 {isTr ? "Temel Excel" : "Basic Excel"}
@@ -387,35 +392,125 @@ export const Header: React.FC = () => {
                   handleTabSwitch("financial-excel");
                   setMobileNavOpen(false);
                 }}
-                className={`flex-1 py-1.5 rounded-lg text-xs font-bold text-center ${
+                className={`flex-1 py-1.5 rounded-lg text-xs font-bold text-center transition-colors cursor-pointer ${
                   isFinancial
-                    ? "bg-accent text-accent-foreground"
-                    : "text-foreground-secondary"
+                    ? "bg-accent text-accent-foreground shadow-2xs"
+                    : "text-foreground-secondary hover:text-foreground"
                 }`}
               >
                 {isTr ? "Finansal Excel" : "Financial Excel"}
               </button>
             </div>
 
-            {navLinks.map((item) => {
-              const isActive = pathname === item.href;
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setMobileNavOpen(false)}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-semibold ${
-                    isActive
-                      ? "bg-accent/10 text-accent font-bold"
-                      : "text-foreground-secondary hover:bg-surface-secondary"
-                  }`}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
+            {/* Mobile Navigation Links */}
+            <nav className="flex flex-col gap-1">
+              {navLinks.map((item) => {
+                const isActive = pathname === item.href;
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setMobileNavOpen(false)}
+                    className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                      isActive
+                        ? "bg-accent/10 text-accent font-bold"
+                        : "text-foreground-secondary hover:bg-surface-secondary hover:text-foreground"
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </nav>
+
+            {/* Mobile Preferences: Theme & Language Controls */}
+            <div className="border-t border-border pt-3.5 flex flex-col gap-3">
+              {/* Theme Toggle Row */}
+              <div className="flex items-center justify-between px-1">
+                <span className="text-xs font-semibold text-foreground-secondary">
+                  {isTr ? "Görünüm Teması" : "Theme"}
+                </span>
+                <ThemeToggle />
+              </div>
+
+              {/* Interface Language */}
+              <div className="flex flex-col gap-1.5">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-foreground-muted font-bold px-1">
+                  {t.settings.interfaceLanguage}
+                </span>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setInterfaceLocale("en")}
+                    className={`px-2.5 py-1.5 text-xs font-semibold rounded-lg border transition-colors cursor-pointer ${
+                      interfaceLocale === "en"
+                        ? "bg-accent text-accent-foreground border-accent font-bold"
+                        : "border-border bg-surface-secondary/50 text-foreground hover:bg-surface-secondary"
+                    }`}
+                  >
+                    English
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setInterfaceLocale("tr")}
+                    className={`px-2.5 py-1.5 text-xs font-semibold rounded-lg border transition-colors cursor-pointer ${
+                      interfaceLocale === "tr"
+                        ? "bg-accent text-accent-foreground border-accent font-bold"
+                        : "border-border bg-surface-secondary/50 text-foreground hover:bg-surface-secondary"
+                    }`}
+                  >
+                    Türkçe
+                  </button>
+                </div>
+              </div>
+
+              {/* Formula Language */}
+              <div className="flex flex-col gap-1.5">
+                <div className="flex items-center justify-between px-1">
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-foreground-muted font-bold">
+                    {t.settings.formulaLanguage}
+                  </span>
+                  <Code2 className="w-3 h-3 text-accent" />
+                </div>
+                <div className="grid grid-cols-3 gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setFormulaLocaleSetting("auto")}
+                    className={`px-2 py-1.5 text-xs font-semibold rounded-lg border transition-colors cursor-pointer ${
+                      formulaLocaleSetting === "auto"
+                        ? "bg-accent/15 text-accent border-accent font-bold"
+                        : "border-border bg-surface-secondary/50 text-foreground-secondary hover:text-foreground"
+                    }`}
+                  >
+                    Auto
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormulaLocaleSetting("en")}
+                    className={`px-2 py-1.5 text-xs font-semibold rounded-lg border transition-colors cursor-pointer ${
+                      formulaLocaleSetting === "en"
+                        ? "bg-accent/15 text-accent border-accent font-bold"
+                        : "border-border bg-surface-secondary/50 text-foreground-secondary hover:text-foreground"
+                    }`}
+                  >
+                    =SUM
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFormulaLocaleSetting("tr")}
+                    className={`px-2 py-1.5 text-xs font-semibold rounded-lg border transition-colors cursor-pointer ${
+                      formulaLocaleSetting === "tr"
+                        ? "bg-accent/15 text-accent border-accent font-bold"
+                        : "border-border bg-surface-secondary/50 text-foreground-secondary hover:text-foreground"
+                    }`}
+                  >
+                    =TOPLA
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </>
       )}
